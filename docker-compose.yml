@@ -1,0 +1,10 @@
+version: '2'
+services:
+  web:
+    build: ./app_server
+    volumes:
+      - .:/code
+    working_dir: /code/app_server
+    command: python3 main.py
+    ports:
+      - "15000:5000"
