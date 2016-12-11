@@ -12,11 +12,11 @@ nav = Nav(app)
 nav.register_element('navbar', nav_bar)
 
 
+from views import *
 def main():
     app.run()
 
 
-import views
 
 if __name__ == "__main__":
     main()

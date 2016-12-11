@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block page_content %}
+    <h1>Game {{ game_id }}</h1>
+    <canvas width="500" height="500" id="board">
+
+    </canvas>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script type="text/javascript">
+        var game_status = null;
+        function drawCanvas() {
+            const canvas = $('canvas#board')[0];
+            const context = canvas.getContext("2d");
+            const dimension = 500;
+            const cell_side_length = dimension / 8;
+            const disk_radius = 20;
+            context.fillStyle = "#A0522D";
+            for (var i = 0; i < 8; ++i) {
+                var offset = (i % 2 == 0) ? 1 : 0;
+                for (var j = 0; j < 4; ++j) {
+                    context.rect((j * 2 + offset) * cell_side_length, i * cell_side_length, cell_side_length, cell_side_length);
+                }
+            }
+            context.fill();
+            context.fillStyle = "#000000";
+            console.log(game_status);
+            if (game_status == null) {
+                console.log('no data loaded yet');
+                return;
+            }
+            for (black of game_status.black_regular) {
+                context.beginPath();
+                const offset = (black[0] % 2 == 0) ? 1 : 0;
+                context.arc((offset + 2 * black[1] + .5) * cell_side_length, (black[0] + .5) * cell_side_length, disk_radius, 0, Math.PI * 2);
+                context.fill();
+                context.closePath();
+            }
+            //TODO: draw kings
+            context.fillStyle = "#FFFFFF";
+            for (white of game_status.white_regular) {
+                context.beginPath();
+                const offset = (white[0] % 2 == 0) ? 1 : 0;
+                context.arc((offset + 2 * white[1] + .5) * cell_side_length, (white[0] + .5) * cell_side_length, disk_radius, 0, Math.PI * 2);
+                context.fill();
+                context.closePath();
+            }
+            context.fill();
+        }
+        function loadData() {
+            $.get('{{ url_for('.get_game_status', game_id=game_id) }}', function (res) {
+                game_status = res.data;
+                drawCanvas();
+            }, "json")
+        }
+        $(document).ready(function () {
+            setInterval(loadData, 1000);
+            drawCanvas();
+        });
+        $(document).resize(function () {
+            drawCanvas();
+        });
+    </script>
+{% endblock %}
