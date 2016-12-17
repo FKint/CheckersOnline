@@ -19,12 +19,13 @@
             for (var i = 0; i < 8; ++i) {
                 var offset = (i % 2 == 0) ? 1 : 0;
                 for (var j = 0; j < 4; ++j) {
+                    context.beginPath();
                     context.rect((j * 2 + offset) * cell_side_length, i * cell_side_length, cell_side_length, cell_side_length);
+                    context.closePath();
                 }
             }
             context.fill();
             context.fillStyle = "#000000";
-            console.log(game_status);
             if (game_status == null) {
                 console.log('no data loaded yet');
                 return;
@@ -56,6 +57,30 @@
         $(document).ready(function () {
             setInterval(loadData, 1000);
             drawCanvas();
+            $('canvas#board').click(function (ev) {
+                var clicked_disk = get_canvas_disk(ev);
+                if (clicked_disk == null) {
+                    if (selected_disk == null) {
+                        // nothing happens
+                    } else {
+                        // try to move
+                        $.post('{{ url_for('move_disk', game_id=game_id) }}', {
+                            "src": selected_disk,
+                            "dst": clicked_disk
+                        }, function (res) {
+                            loadData();
+                        }, "json")
+                    }
+                } else if (is_own_disk(clicked_disk)) {
+                    if (clicked_disk == selected_disk) {
+                        selected_disk = null;
+                    } else {
+                        selected_disk = clicked_disk;
+                    }
+                } else {
+                    // invalid click
+                }
+            });
         });
         $(document).resize(function () {
             drawCanvas();
