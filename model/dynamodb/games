@@ -1,0 +1,4 @@
+aws dynamodb create-table --table-name GamesCollection --attribute-definitions AttributeName=GameId,AttributeType=S \
+    --key-schema AttributeName=GameId,KeyType=HASH \
+    --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 \
+    --endpoint-url http://localhost:18000

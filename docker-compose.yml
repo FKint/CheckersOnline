@@ -27,3 +27,7 @@ services:
             - dynamodb
     dynamodb:
         image: deangiberson/aws-dynamodb-local:latest
+        expose:
+            - "8000"
+        ports:
+            - "18000:8000"

@@ -1,21 +1,28 @@
 """
 game: {
-    whitePlayerId:
-    blackPlayerId:
-    gameStates: [{
+    GameId: S
+    WhitePlayerId:
+    BlackPlayerId:
+    BameStates: [{
         timestamp: <...>
         state: <...>
     }]
-    gameName: <...>
+    GameName: <...>
 }
 
 gamestate: {
-    black_regular: [(row, col)]
-    black_kings: [(row, col)]
-    white_regular: [(row, col)]
-    white_kings: [(row, col)]
+    BlackRegular: [(row, col)]
+    BlackKings: [(row, col)]
+    WhiteRegular: [(row, col)]
+    WhiteKings: [(row, col)]
+}
+users: {
+    Handle: S
+    Email: S
+    Password: S
 }
 """
+
 def get_game_status(game_id):
     return {
         "turn": 0,
