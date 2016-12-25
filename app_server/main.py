@@ -11,11 +11,11 @@ Bootstrap(app)
 nav = Nav(app)
 nav.register_element('navbar', nav_bar)
 
-
 from views import *
-def main():
-    app.run()
 
+
+def main():
+    app.run(host=app.config['HOSTNAME'])
 
 
 if __name__ == "__main__":

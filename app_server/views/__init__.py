@@ -2,12 +2,13 @@ from main import app
 import data_interface
 from flask import render_template, jsonify
 
+from views.tests import *
+
 
 @app.route('/')
 @app.route('/home')
 @app.route('/index')
 def show_index():
-    print("showing index")
     return render_template("home.html")
 
 

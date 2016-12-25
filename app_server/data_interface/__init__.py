@@ -1,3 +1,21 @@
+"""
+game: {
+    whitePlayerId:
+    blackPlayerId:
+    gameStates: [{
+        timestamp: <...>
+        state: <...>
+    }]
+    gameName: <...>
+}
+
+gamestate: {
+    black_regular: [(row, col)]
+    black_kings: [(row, col)]
+    white_regular: [(row, col)]
+    white_kings: [(row, col)]
+}
+"""
 def get_game_status(game_id):
     return {
         "turn": 0,
