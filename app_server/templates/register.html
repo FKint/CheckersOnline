@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block page_content %}
+    <h1>Sign up for Checkers Online!</h1>
+    {{ wtf.quick_form(register_form) }}
+    Already have an account? <a href="{{ url_for('.login') }}">Sign in.</a>
+{% endblock %}

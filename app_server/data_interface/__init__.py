@@ -22,6 +22,8 @@ users: {
     Password: S
 }
 """
+import boto3
+
 
 def get_game_status(game_id):
     return {
@@ -33,3 +35,6 @@ def get_game_status(game_id):
                           (5, 3)],
         "white_kings": []
     }
+
+def register_user(handle, password, email):
+    pass

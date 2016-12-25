@@ -3,7 +3,7 @@ import data_interface
 from flask import render_template, jsonify
 
 from views.tests import *
-
+from views.login import *
 
 @app.route('/')
 @app.route('/home')
@@ -24,11 +24,6 @@ def show_games():
 
 @app.route('/settings/account')
 def show_account_settings():
-    return "To be implemented"
-
-
-@app.route('/logout')
-def logout():
     return "To be implemented"
 
 
