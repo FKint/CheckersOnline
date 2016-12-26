@@ -1,9 +1,11 @@
 from functools import wraps
 
-from flask import redirect, url_for, flash
+from flask import redirect, url_for, flash, session
 
 
 def get_user_account():
+    if 'logged_in_user' in session:
+        return session['logged_in_user']
     return None
 
 
@@ -12,7 +14,11 @@ def is_logged_in():
 
 
 def get_user_id():
-    return get_user_account()['UserId']
+    return get_user_account()['Handle']
+
+
+def set_user_account(user):
+    session['logged_in_user'] = user
 
 
 def login_required(f):
@@ -21,7 +27,11 @@ def login_required(f):
         if is_logged_in():
             return f(*args, **kwargs)
         else:
-            flash("You need to login first.", "danger")
+            flash("You need to sign in first.", "danger")
             return redirect(url_for('.login'))
 
     return wrap
+
+
+def logout():
+    set_user_account(None)

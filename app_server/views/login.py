@@ -1,10 +1,11 @@
 from flask import redirect, url_for, render_template, flash
-from main import app
 from flask_wtf import FlaskForm
 from wtforms import SubmitField, StringField, PasswordField
 from wtforms.validators import Email, EqualTo, InputRequired, Length
 
-import data_interface
+import data_interface.users
+from helpers import session
+from main import app
 
 
 class LoginForm(FlaskForm):
@@ -25,27 +26,41 @@ class RegisterForm(FlaskForm):
 
 @app.route('/login', methods=["POST", "GET"])
 def login():
+    if session.is_logged_in():
+        flash('Already logged in', 'warning')
+        return redirect(url_for('.show_index'))
     form = LoginForm()
     if form.validate_on_submit():
-        flash('Successfully signed in!', 'success')
-        return redirect(url_for('.index'))
+        error, user = data_interface.users.check_user_login(handle=form.handle.data, password=form.password.data)
+        if error is not None:
+            flash("An error occurred when logging in: {}".format(error['message']), "danger")
+        else:
+            flash('Successfully signed in!', 'success')
+            session.set_user_account(user)
+            return redirect(url_for('.show_index'))
     return render_template('login.html', login_form=form)
 
 
 @app.route('/register', methods=["POST", "GET"])
 def register():
+    if session.is_logged_in():
+        flash('Already logged in', 'warning')
+        return redirect(url_for('.show_index'))
     form = RegisterForm()
     if form.validate_on_submit():
-        user, error = data_interface.register_user(handle=form.handle.data, email=form.email.data,
+        error = data_interface.users.register_user(handle=form.handle.data, email=form.email.data,
                                                    password=form.password1.data)
         if error is not None:
-            flash("An error occurred when registering: {}".format(error['message']))
+            flash("An error occurred when registering: {}".format(error['message']), "danger")
         else:
             flash('Successfully registered!', 'success')
-            return redirect(url_for('.index'))
+            return redirect(url_for('.show_index'))
     return render_template('register.html', register_form=form)
 
 
 @app.route('/logout')
 def logout():
-    return redirect(url_for('.index'))
+    if session.is_logged_in():
+        session.logout()
+        flash('Successfully logged out!', 'success')
+    return redirect(url_for('.show_index'))

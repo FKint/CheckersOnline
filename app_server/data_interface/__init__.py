@@ -35,6 +35,3 @@ def get_game_status(game_id):
                           (5, 3)],
         "white_kings": []
     }
-
-def register_user(handle, password, email):
-    pass
