@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block page_content %}
+    <h1>Start a new game of checkers!</h1>
+    {{ wtf.quick_form(new_game_form) }}
+{% endblock %}

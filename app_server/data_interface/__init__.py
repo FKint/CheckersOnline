@@ -3,7 +3,7 @@ game: {
     GameId: S
     WhitePlayerId:
     BlackPlayerId:
-    BameStates: [{
+    GameStates: [{
         timestamp: <...>
         state: <...>
     }]
