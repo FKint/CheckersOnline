@@ -8,7 +8,8 @@
 {% block scripts %}
     {{ super() }}
     <script type="text/javascript">
-        var game_status = null;
+        let game_status = null;
+        let selected_disk = null;
         function drawCanvas() {
             const DIMENSION = 10;
             const canvas = $('canvas#board')[0];
