@@ -1,21 +1,35 @@
 {% extends "base.html" %}
 {% block page_content %}
     <h1>Game '{{ game.GameName }}'</h1>
-    <canvas width="500" height="500" id="board">
+    <div class="row">
+        <div class="col-xs-12 col-md-10">
+            <canvas width="500" height="500" id="board">
+            </canvas>
+        </div>
+        <div class="col-xs-4 col-md-2">
+            <h3>Own colour: {{ own_color }}</h3>
+            Move: <span id="move" style="background-color:grey"></span><br>
+            <button class="btn btn-default" id="btnClearMove">Clear move</button>
+            <button class="btn btn-primary" id="btnSubmitMove">Submit!</button>
+        </div>
+    </div>
 
-    </canvas>
 {% endblock %}
 {% block scripts %}
     {{ super() }}
     <script type="text/javascript">
+        const WHITE = "WHITE";
+        const BLACK = "BLACK";
+        const REGULAR = "REGULAR";
+        const KING = "KING";
         let game_status = null;
-        let selected_disk = null;
+        const DIMENSION = 10;
+        let canvas = null;
+        const dimension = 500;
+        const cell_side_length = dimension / DIMENSION;
         function drawCanvas() {
-            const DIMENSION = 10;
-            const canvas = $('canvas#board')[0];
+            canvas = $('canvas#board')[0];
             const context = canvas.getContext("2d");
-            const dimension = 500;
-            const cell_side_length = dimension / DIMENSION;
             const disk_radius = 20;
             context.fillStyle = "#A0522D";
             for (let i = 0; i < DIMENSION; ++i) {
@@ -51,38 +65,101 @@
             }
             context.fill();
         }
+        function get_canvas_cell(ev) {
+            const rect = canvas.getBoundingClientRect();
+            return [parseInt(Math.floor((ev.clientY - rect.top) / cell_side_length)), parseInt(Math.floor((ev.clientX - rect.left) / cell_side_length))]
+        }
+        function get_disk_at(cell) {
+            for (const white of game_status.WhiteRegular) {
+                if (white[0] == cell[0] && white[1] == cell[1]) {
+                    return {color: WHITE, type: REGULAR};
+                }
+            }
+            for (const white of game_status.WhiteKings) {
+                if (white[0] == cell[0] && white[1] == cell[1]) {
+                    return {color: WHITE, type: KING};
+                }
+            }
+            for (const black of game_status.BlackRegular) {
+                if (black[0] == cell[0] && black[1] == cell[1]) {
+                    return {color: BLACK, type: REGULAR};
+                }
+            }
+            for (const black of game_status.BlackKings) {
+                if (black[0] == cell[0] && black[1] == cell[1]) {
+                    return {color: BLACK, type: KING};
+                }
+            }
+        }
+        function is_own_disk(disk) {
+            return disk.color == '{{ own_color }}';
+        }
         function loadData() {
             $.get('{{ url_for('.get_game_status', game_id=game.GameId) }}', function (res) {
                 game_status = res.data;
                 drawCanvas();
             }, "json")
         }
+        let move = [];
+        function moveUpdated() {
+            let text = "";
+            for (const m of move) {
+                if (text.length != 0) {
+                    text += " - ";
+                }
+                text += m[0].toString() + m[1].toString();
+            }
+            $('span#move').text(text);
+        }
         $(document).ready(function () {
             setInterval(loadData, 1000);
             drawCanvas();
             $('canvas#board').click(function (ev) {
-                const clicked_disk = get_canvas_disk(ev);
-                if (clicked_disk == null) {
-                    if (selected_disk == null) {
-                        // nothing happens
-                    } else {
-                        // try to move
-                        $.post('{{ url_for('.game_move', game_id=game.GameId) }}', {
-                            "src": selected_disk,
-                            "dst": clicked_disk
-                        }, function (res) {
-                            loadData();
-                        }, "json")
-                    }
-                } else if (is_own_disk(clicked_disk)) {
-                    if (clicked_disk == selected_disk) {
-                        selected_disk = null;
-                    } else {
-                        selected_disk = clicked_disk;
+                const clicked_cell = get_canvas_cell(ev);
+                console.log("Clicked cell: " + JSON.stringify(clicked_cell));
+                if (clicked_cell == null) {
+                    return false;
+                }
+                const clicked_disk = get_disk_at(clicked_cell);
+                console.log("Clicked disk: " + JSON.stringify(clicked_disk));
+                if (clicked_disk) {
+                    if (is_own_disk(clicked_disk)) {
+                        console.log("own disk: reset movement to start with clicked disk");
+                        move = [clicked_cell];
                     }
                 } else {
-                    // invalid click
+                    if (move.length > 0) {
+                        console.log("add cell to move");
+                        move.push(clicked_cell);
+                    } else {
+                        console.log("empty move!");
+                        move = [];
+                    }
                 }
+                moveUpdated();
+            });
+            function clearMove() {
+                move = [];
+                moveUpdated();
+            }
+
+            $('button#btnClearMove').click(function () {
+                clearMove();
+            });
+            $('button#btnSubmitMove').click(function () {
+                $.post({
+                    url: '{{ url_for('.game_move', game_id=game.GameId) }}',
+                    data: JSON.stringify({
+                        "src": move[0],
+                        "dst": move.slice(1, move.length)
+                    }),
+                    contentType: 'application/json;charset=UTF-8',
+                    success: function (res) {
+                        console.log(res);
+                        loadData();
+                    }
+                });
+                clearMove();
             });
         });
         $(document).resize(function () {

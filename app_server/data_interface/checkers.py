@@ -1,5 +1,15 @@
-def get_valid_move(state, src, dest):
-    pass
+import json
+
+from data_interface import games
+
+
+def execute_move(game_id, src, dest):
+    db_game_state = games.get_current_game_state(game_id)
+    checkers_state = CheckersState(db_game_state['Turn'], db_game_state['BlackRegular'], db_game_state['BlackKings'],
+                                   db_game_state['WhiteRegular'], db_game_state['WhiteKings'])
+    checkers_state.validate_move(tuple(src), list(map(tuple, dest)))
+    new_db_game_state = checkers_state.get_game_state_after_turn()
+    games.update_game_state(game_id, new_db_game_state)
 
 
 WHITE = "WHITE"
@@ -15,16 +25,26 @@ class InvalidTurnException(Exception):
 
 
 class CheckersState:
-    def __init__(self):
-        self.turn = WHITE
-        self.black_regular = []
-        self.white_regular = []
-        self.black_kings = []
-        self.white_kings = []
+    def __init__(self, turn, black_regular, black_kings, white_regular, white_kings):
+        self.turn = turn
+        self.black_regular = list(map(tuple, black_regular))
+        self.white_regular = list(map(tuple, white_regular))
+        self.black_kings = list(map(tuple, black_kings))
+        self.white_kings = list(map(tuple, white_kings))
 
-    def is_valid_turn(self, src, moves):
+    def get_game_state_after_turn(self):
+        return {
+            "Turn": WHITE if self.turn == BLACK else BLACK,
+            "BlackRegular": list(map(games.convert_tuple_to_coordinate, self.black_regular)),
+            "BlackKings": list(map(games.convert_tuple_to_coordinate, self.black_kings)),
+            "WhiteRegular": list(map(games.convert_tuple_to_coordinate, self.white_regular)),
+            "WhiteKings": list(map(games.convert_tuple_to_coordinate, self.white_kings))
+        }
+
+    def validate_move(self, src, moves):
         if self.is_empty_cell(src):
-            raise InvalidTurnException("Src is empty")
+            raise InvalidTurnException("Src is empty: {} {} {}".format(json.dumps(src), json.dumps(self.white_regular),
+                                                                       json.dumps(self.black_regular)))
         actor = self.get_piece_at(src)
         if actor[0] != self.turn:
             raise InvalidTurnException("Current turn: {}".format(self.turn))
@@ -66,7 +86,8 @@ class CheckersState:
                 self.remove_piece(captured)
 
     def is_empty_cell(self, cell):
-        return cell not in (self.black_regular + self.black_kings + self.white_regular + self.white_kings)
+        return tuple(cell) not in map(tuple,
+                                      self.black_regular + self.black_kings + self.white_regular + self.white_kings)
 
     def get_piece_at(self, cell):
         if cell in self.black_regular:
@@ -97,7 +118,7 @@ class CheckersState:
                     return False
         else:
             v = dest[0] - src[0], dest[1] - src[1]
-            v = v[0] / abs(v[0]), v[1] / abs(v[1])
+            v = int(v[0] / abs(v[0])), int(v[1] / abs(v[1]))
             for s in range(1, abs(v[0])):
                 loc = src[0] + s * v[0], src[1] + s * v[1]
                 if not self.is_empty_cell(loc):

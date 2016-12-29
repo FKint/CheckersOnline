@@ -1,5 +1,6 @@
 import uuid
 
+from data_interface import checkers
 from main import boto_flask
 
 
@@ -33,6 +34,7 @@ def convert_coordinate_game_state_to_tuple(game_state):
         "WhiteRegular": list(map(convert_coordinate_to_tuple, game_state['WhiteRegular'])),
         "BlackKings": list(map(convert_coordinate_to_tuple, game_state['BlackKings'])),
         "WhiteKings": list(map(convert_coordinate_to_tuple, game_state['WhiteKings'])),
+        "Turn": game_state['Turn']
     }
 
 
@@ -50,7 +52,8 @@ def get_default_game_state():
         "BlackRegular": list(map(convert_tuple_to_coordinate, black_regular)),
         "BlackKings": [],
         "WhiteRegular": list(map(convert_tuple_to_coordinate, white_regular)),
-        "WhiteKings": []
+        "WhiteKings": [],
+        "Turn": checkers.WHITE
     }
 
 
@@ -101,3 +104,23 @@ def get_game_data(game_id):
         }
     )
     return response['Item']
+
+
+def get_current_game_state(game_id):
+    game_data = get_game_data(game_id)
+    states = game_data['GameStates']
+    return convert_coordinate_game_state_to_tuple(states[-1])
+
+
+def update_game_state(game_id, game_state):
+    dynamodb = boto_flask.resources['dynamodb']
+    table = dynamodb.Table('GamesCollection')
+    response = table.update_item(
+        Key={
+            "GameId": game_id
+        },
+        UpdateExpression="SET GameStates = list_append(GameStates, :s)",
+        ExpressionAttributeValues={
+            ':s': [game_state],
+        }
+    )
