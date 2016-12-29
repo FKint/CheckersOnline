@@ -22,12 +22,20 @@ def test_dynamodb():
     return jsonify(str(boto_flask.clients['dynamodb'].list_tables()))
 
 
+def convert_user_friends_sets_to_lists(elements):
+    for el in elements:
+        if 'Friends' in el:
+            el['Friends'] = list(el['Friends'])
+
+
 @app.route('/tests/boto3/dynamodb/users')
 def test_dynamodb_users():
     dynamodb = boto_flask.resources['dynamodb']
     table = dynamodb.Table('UsersCollection')
     response = table.scan()
-    return jsonify(response['Items'])
+    items = response['Items']
+    convert_user_friends_sets_to_lists(items)
+    return jsonify(items)
 
 
 @app.route('/tests/boto3/dynamodb/games')

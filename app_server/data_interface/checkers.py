@@ -1,6 +1,7 @@
 import json
 
 from data_interface import games
+from main import app
 
 
 def execute_move(game_id, src, dest):
@@ -42,6 +43,7 @@ class CheckersState:
         }
 
     def validate_move(self, src, moves):
+        app.logger.debug('Calling validate_move({}, {})'.format(src, moves))
         if self.is_empty_cell(src):
             raise InvalidTurnException("Src is empty: {} {} {}".format(json.dumps(src), json.dumps(self.white_regular),
                                                                        json.dumps(self.black_regular)))
@@ -56,15 +58,16 @@ class CheckersState:
                 raise InvalidTurnException("Dest is not empty")
         current_location = src
         for m in moves:
-            if self.is_step(current_location, m, actor) and not len(moves) == 1:
-                raise InvalidTurnException("Steps can only be done as the only move")
-            if self.is_jump(current_location, m, actor):
+            if self.is_step(current_location, m, actor):
+                if not len(moves) == 1:
+                    raise InvalidTurnException("Steps can only be done as the only move")
+            elif not self.is_jump(current_location, m, actor):
                 raise InvalidTurnException("Invalid move")
             current_location = m
 
         optimal_num_killed = self.get_optimal_killing(self.turn)
 
-        if len(moves) == 1 and self.is_step(src, moves[0], self.turn):
+        if len(moves) == 1 and self.is_step(src, moves[0], actor):
             if optimal_num_killed > 0:
                 raise InvalidTurnException("Should capture some!")
             self.move_piece(src, moves[0])
@@ -83,7 +86,7 @@ class CheckersState:
                 raise InvalidTurnException("Should capture more!")
             self.move_piece(src, moves[-1])
             for captured in killed_pieces:
-                self.remove_piece(captured)
+                self.remove_piece(captured[1])
 
     def is_empty_cell(self, cell):
         return tuple(cell) not in map(tuple,
@@ -159,10 +162,12 @@ class CheckersState:
 
     def get_captured_piece(self, src, dest):
         v = dest[0] - src[0], dest[1] - src[1]
-        v = v[0] / abs(v[0]), v[1] / abs(v[1])
+        v = int(v[0] / abs(v[0])), int(v[1] / abs(v[1]))
         captured_piece = None
-        for s in range(1, abs(v[0])):
+        visited_locs = []
+        for s in range(1, abs(dest[0] - src[0])):
             loc = src[0] + s * v[0], src[1] + s * v[1]
+            visited_locs.append(loc)
             if not self.is_empty_cell(loc):
                 if captured_piece is not None:
                     return None
@@ -206,11 +211,14 @@ class CheckersState:
                 self.white_kings.remove(cell)
 
     def get_optimal_killing_for_piece(self, piece, location, captured=None, history=None):
+        app.logger.debug(
+            'Calling get_optimal_killing_for_piece({}, {}, {}, {})'.format(piece, location, captured, history))
         if captured is None:
             captured = set()
         if history is None:
             history = set()
         valid_captures = self.get_valid_captures(piece, location)
+        print(valid_captures)
         best = len(captured)
         for c in valid_captures:
             captured_piece = self.get_captured_piece(location, c)
@@ -218,10 +226,10 @@ class CheckersState:
             if captured_piece in captured:
                 if c in history:
                     continue
-                new_history = set()
+                new_history = history | {c}
                 new_captured = captured
             else:
-                new_history = history | {c}
+                new_history = {c}
                 new_captured = captured | {captured_piece}
             self.move_piece(location, c)
             best = max(best, self.get_optimal_killing_for_piece(piece, c, new_captured, new_history))

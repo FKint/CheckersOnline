@@ -24,7 +24,7 @@
 {% endblock %}
 
 {% block navbar %}
-    {% if session.logged_in_user != None %}
+    {% if session.logged_in_user %}
         {{ nav.login_navbar.render(renderer='custom_bootstrap_nav') }}
     {% else %}
         {{ nav.not_login_navbar.render(renderer='custom_bootstrap_nav') }}

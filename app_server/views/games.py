@@ -4,14 +4,15 @@ from wtforms import SelectField, StringField, SubmitField
 from wtforms.validators import InputRequired
 
 from data_interface import games, checkers
-from helpers.session import login_required, get_user_id
+from helpers.session import login_required, get_user_id, get_user_account
 from main import app
 
 
 class NewGameForm(FlaskForm):
     name = StringField('Name', validators=[InputRequired()])
     opponent = SelectField('Opponent', choices=[("-1", 'Computer')], validators=[])
-    own_side = SelectField('Your colour', choices=[(checkers.WHITE, 'White'), (checkers.BLACK, 'Black')], default=checkers.WHITE)
+    own_side = SelectField('Your colour', choices=[(checkers.WHITE, 'White'), (checkers.BLACK, 'Black')],
+                           default=checkers.WHITE)
     submit = SubmitField('Submit')
 
 
@@ -19,6 +20,7 @@ class NewGameForm(FlaskForm):
 @login_required
 def create_new_game():
     form = NewGameForm()
+    form.opponent.choices = [("-1", "Computer")] + [(friend, friend) for friend in get_user_account()["Friends"]]
     if form.validate_on_submit():
         if form.own_side.data == checkers.WHITE:
             white_user_id = get_user_id()
