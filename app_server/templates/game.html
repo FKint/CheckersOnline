@@ -2,14 +2,30 @@
 {% block page_content %}
     <h1>Game '{{ game.GameName }}'</h1>
     <div class="row">
-        <div class="col-xs-12 col-md-10">
+        <div class="col-xs-12 col-md-8">
             <canvas width="500" height="500" id="board">
             </canvas>
         </div>
-        <div class="col-xs-4 col-md-2">
-            <h3>Own colour: {{ own_color }}</h3>
-            Current turn: <span id="turn"></span>.<br>
-            Move: <span id="move" style="background-color:grey"></span><br>
+        <div class="col-xs-4 col-md-4">
+            <h2>Game info</h2>
+            <table class="table table-striped">
+                <tr>
+                    <th>Color</th>
+                    <th>Player</th>
+                </tr>
+                <tr>
+                    <td>Black</td>
+                    <td>{{ game.BlackPlayerId }}</td>
+                </tr>
+                <tr>
+                    <td>White</td>
+                    <td>{{ game.WhitePlayerId }}</td>
+                </tr>
+            </table>
+            <h2>Current turn</h2>
+            <span id="turn"></span><br>
+            <span id="move" style="background-color:grey"></span><br>
+            <span class="alert-danger" id="move-error"></span><br>
             <button class="btn btn-default" id="btnClearMove">Clear move</button>
             <button class="btn btn-primary" id="btnSubmitMove">Submit!</button>
         </div>
@@ -155,7 +171,11 @@
         function loadData() {
             $.get('{{ url_for('.get_game_status', game_id=game.GameId) }}', function (res) {
                 game_status = res.data;
-                $('#turn').text(game_status.Turn);
+                if(game_status.Turn == "{{ own_color }}"){
+                    $('#turn').text("It's your turn.");
+                }else{
+                    $('#turn').text("It's "+game_status.Turn+"'s turn.");
+                }
                 drawCanvas();
             }, "json")
         }
@@ -168,7 +188,7 @@
                 }
                 text += m[0].toString() + m[1].toString();
             }
-            $('span#move').text(text);
+            $('span#move').text("Move: "+text);
         }
         $(document).ready(function () {
             setInterval(loadData, 1000);
@@ -214,6 +234,11 @@
                     }),
                     contentType: 'application/json;charset=UTF-8',
                     success: function (res) {
+                        if(res.error){
+                            $('#move-error').text(res.error);
+                        }else{
+                            $('#move-error').empty();
+                        }
                         console.log(res);
                         loadData();
                     }
