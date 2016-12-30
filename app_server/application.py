@@ -7,7 +7,8 @@ from navbar import logged_in_nav_bar, not_logged_in_nav_bar
 from utilities.ui.bootstrap import CustomBootstrapRenderer
 
 app = Flask("Checkers Online App Server", template_folder="templates")
-app.config.from_pyfile('config.cfg')
+app.config.from_envvar('CONFIG_FILE')
+
 boto_flask = Boto3(app)
 Bootstrap(app)
 nav = Nav()
@@ -17,8 +18,8 @@ nav.init_app(app)
 nav.register_element('login_navbar', logged_in_nav_bar)
 nav.register_element('not_login_navbar', not_logged_in_nav_bar)
 
-import views
-import setup
+from views import *
+from setup import *
 
 
 def main():

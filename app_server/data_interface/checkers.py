@@ -1,7 +1,7 @@
 import json
 
 from data_interface import games
-from main import app
+from application import app
 
 
 def execute_move(game_id, src, dest):

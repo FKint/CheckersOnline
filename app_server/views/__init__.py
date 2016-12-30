@@ -5,7 +5,7 @@ import views.games
 import views.login
 import views.tests
 from helpers.session import login_required
-from main import app
+from application import app
 
 
 @app.route('/')

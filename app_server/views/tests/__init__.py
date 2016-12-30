@@ -3,7 +3,7 @@ import datetime
 import requests
 from flask import jsonify
 
-from main import app, boto_flask
+from application import app, boto_flask
 
 
 @app.route('/tests/ai')

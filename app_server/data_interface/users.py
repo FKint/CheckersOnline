@@ -1,5 +1,5 @@
 from helpers.session import get_user_id, update_user_account
-from main import boto_flask
+from application import boto_flask
 
 
 def register_user(handle, password, email):

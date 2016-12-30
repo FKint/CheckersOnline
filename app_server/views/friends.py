@@ -5,7 +5,7 @@ from wtforms.validators import InputRequired
 
 from data_interface import users
 from helpers.session import login_required, get_user_account
-from main import app
+from application import app
 
 
 class AddFriendForm(FlaskForm):

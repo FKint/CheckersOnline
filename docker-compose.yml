@@ -2,10 +2,12 @@ version: '2'
 services:
     web:
         build: ./app_server
+        env_file:
+            - ./app_server/config.env
         volumes:
             - ./app_server:/code
         working_dir: /code
-        command: python3 -u main.py
+        command: python3 -u application.py
         ports:
             - "15000:5000"
         expose:
@@ -18,7 +20,7 @@ services:
         volumes:
             - ./ai:/code
         working_dir: /code
-        command: python3 -u main.py
+        command: python3 -u application.py
         ports:
             - "16000:5000"
         expose:

@@ -5,7 +5,7 @@ from wtforms.validators import Email, EqualTo, InputRequired, Length
 
 import data_interface.users
 from helpers import session
-from main import app
+from application import app
 
 
 class LoginForm(FlaskForm):

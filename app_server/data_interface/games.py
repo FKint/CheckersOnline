@@ -1,7 +1,7 @@
 import uuid
 
 from data_interface import checkers
-from main import boto_flask
+from application import boto_flask
 
 
 def get_your_turn_games(handle):

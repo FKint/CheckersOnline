@@ -5,7 +5,7 @@ from wtforms.validators import InputRequired
 
 from data_interface import games, checkers
 from helpers.session import login_required, get_user_id, get_user_account
-from main import app
+from application import app
 
 
 class NewGameForm(FlaskForm):

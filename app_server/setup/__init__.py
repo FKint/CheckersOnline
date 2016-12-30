@@ -1,4 +1,4 @@
-from main import app, boto_flask
+from application import app, boto_flask
 import click
 import json
 
