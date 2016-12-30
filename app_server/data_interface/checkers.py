@@ -33,9 +33,13 @@ class CheckersState:
         self.black_kings = list(map(tuple, black_kings))
         self.white_kings = list(map(tuple, white_kings))
 
+    def get_next_turn(self):
+        return WHITE if self.turn == BLACK else BLACK
+
     def get_game_state_after_turn(self):
         return {
-            "Turn": WHITE if self.turn == BLACK else BLACK,
+            "Winner": self.get_winner(),
+            "Turn": self.get_next_turn(),
             "BlackRegular": list(map(games.convert_tuple_to_coordinate, self.black_regular)),
             "BlackKings": list(map(games.convert_tuple_to_coordinate, self.black_kings)),
             "WhiteRegular": list(map(games.convert_tuple_to_coordinate, self.white_regular)),
@@ -89,6 +93,8 @@ class CheckersState:
                 self.remove_piece(captured[1])
 
     def is_empty_cell(self, cell):
+        if not self.is_valid_location(cell):
+            return False
         return tuple(cell) not in map(tuple,
                                       self.black_regular + self.black_kings + self.white_regular + self.white_kings)
 
@@ -122,7 +128,7 @@ class CheckersState:
         else:
             v = dest[0] - src[0], dest[1] - src[1]
             v = int(v[0] / abs(v[0])), int(v[1] / abs(v[1]))
-            for s in range(1, abs(v[0])):
+            for s in range(1, abs(dest[0] - src[0])):
                 loc = src[0] + s * v[0], src[1] + s * v[1]
                 if not self.is_empty_cell(loc):
                     return False
@@ -236,17 +242,18 @@ class CheckersState:
             self.move_piece(c, location)
         return best
 
+    regular_capture_directions = [(-2, -2), (2, -2), (-2, 2), (2, 2)]
+    all_directions_vectors = [(-1, -1), (1, -1), (-1, 1), (1, 1)]
+
     def get_valid_captures(self, piece, location):
         valid_captures = []
         if piece[1] == REGULAR:
-            regular_captures = [(-2, -2), (2, -2), (-2, 2), (2, 2)]
-            for c in regular_captures:
+            for c in CheckersState.regular_capture_directions:
                 new_loc = location[0] + c[0], location[1] + c[1]
                 if self.is_jump(location, new_loc, piece):
                     valid_captures.append(new_loc)
         else:
-            directions = [(-1, -1), (1, -1), (-1, 1), (1, 1)]
-            for d in directions:
+            for d in CheckersState.all_directions_vectors:
                 for j in range(2, 9):
                     new_loc = location[0] + d[0] * j, location[1] + d[1] * j
                     if self.is_jump(location, new_loc, piece):
@@ -266,3 +273,34 @@ class CheckersState:
             for k in self.white_kings:
                 best = max(best, self.get_optimal_killing_for_piece((WHITE, KING), k))
         return best
+
+    def get_winner(self):
+        if not self.can_move(self.get_next_turn()):
+            return self.turn
+        return None
+
+    def can_move(self, color):
+        if color == BLACK:
+            regular_directions = [(1, 1), (1, -1)]
+            regular = self.black_regular
+            kings = self.black_kings
+        else:
+            regular_directions = [(-1, 1), (-1, -1)]
+            regular = self.white_regular
+            kings = self.white_kings
+        for r in regular:
+            for rd in regular_directions:
+                new_loc = r[0] + rd[0], r[1] + rd[1]
+                if self.is_empty_cell(new_loc):
+                    return True
+            for rcd in CheckersState.regular_capture_directions:
+                new_loc = r[0] + rcd[0], r[1] + rcd[1]
+                if self.is_jump(r, new_loc, REGULAR):
+                    return True
+        for k in kings:
+            for d in CheckersState.all_directions_vectors:
+                for j in range(2, 9):
+                    new_loc = k[0] + d[0] * j, k[1] + d[1] * j
+                    if self.is_jump(k, new_loc, KING) or self.is_step(k, new_loc, KING):
+                        return True
+        return False

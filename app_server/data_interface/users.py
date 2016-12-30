@@ -27,9 +27,7 @@ def get_all_user_data(handle):
         }
     )
     if 'Item' not in response:
-        return {
-                   "message": "No such user"
-               }, None
+        return None
     item = response['Item']
     return item
 
@@ -43,11 +41,18 @@ def extract_public_user_fields(item):
 
 
 def get_public_user_account(handle):
+    all_user_data = get_all_user_data(handle)
+    if all_user_data is None:
+        return None
     return extract_public_user_fields(get_all_user_data(handle))
 
 
 def check_user_login(handle, password):
     item = get_all_user_data(handle)
+    if item is None:
+        return {
+                   "message": "No such user"
+               }, None
     # TODO: use password hashing (bcrypt)
     if item['Password'] != password:
         return {

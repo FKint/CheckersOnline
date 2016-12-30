@@ -8,6 +8,7 @@
         </div>
         <div class="col-xs-4 col-md-2">
             <h3>Own colour: {{ own_color }}</h3>
+            Current turn: <span id="turn"></span>.<br>
             Move: <span id="move" style="background-color:grey"></span><br>
             <button class="btn btn-default" id="btnClearMove">Clear move</button>
             <button class="btn btn-primary" id="btnSubmitMove">Submit!</button>
@@ -27,9 +28,14 @@
         let canvas = null;
         const dimension = 500;
         const cell_side_length = dimension / DIMENSION;
+        const cross_width = cell_side_length / 2;
+        const cross_line_width = cell_side_length / 10;
+        const BLACK_COLOR = "#000000";
+        const WHITE_COLOR = "#FFFFFF";
         function drawCanvas() {
             canvas = $('canvas#board')[0];
             const context = canvas.getContext("2d");
+            context.clearRect(0, 0, canvas.width, canvas.height);
             const disk_radius = 20;
             context.fillStyle = "#A0522D";
             for (let i = 0; i < DIMENSION; ++i) {
@@ -42,50 +48,102 @@
                 }
             }
             context.fill();
-            context.fillStyle = "#000000";
+            context.fillStyle = BLACK_COLOR;
             if (game_status == null) {
                 console.log('no data loaded yet');
                 return;
             }
-            for (const black of game_status.BlackRegular) {
+            for (black of game_status.BlackRegular) {
                 context.beginPath();
                 const offset = (black[0] % 2 == 0) ? 1 : 0;
                 context.arc((black[1] + .5) * cell_side_length, (black[0] + .5) * cell_side_length, disk_radius, 0, Math.PI * 2);
                 context.closePath();
                 context.fill();
             }
+            for (black of game_status.BlackKings) {
+                context.fillStyle = BLACK_COLOR;
+                context.beginPath();
+                const offset = (black[0] % 2 == 0) ? 1 : 0;
+                context.arc((black[1] + .5) * cell_side_length, (black[0] + .5) * cell_side_length, disk_radius, 0, Math.PI * 2);
+                context.closePath();
+                context.fill();
+                context.fillStyle = WHITE_COLOR;
+                context.beginPath();
+                context.rect((black[1] + .5) * cell_side_length - cross_line_width / 2, (black[0] + .5) * cell_side_length - cross_width / 2, cross_line_width, cross_width);
+                context.closePath();
+                context.fill();
+                context.beginPath();
+                context.rect((black[1] + .5) * cell_side_length - cross_width / 2, (black[0] + .5) * cell_side_length - cross_line_width / 2, cross_width, cross_line_width);
+                context.closePath();
+                context.fill()
+            }
             //TODO: draw kings
             context.fillStyle = "#FFFFFF";
-            for (const white of game_status.WhiteRegular) {
+            for (white of game_status.WhiteRegular) {
                 context.beginPath();
                 const offset = (white[0] % 2 == 0) ? 1 : 0;
                 context.arc((white[1] + .5) * cell_side_length, (white[0] + .5) * cell_side_length, disk_radius, 0, Math.PI * 2);
                 context.fill();
                 context.closePath();
             }
-            context.fill();
+            for (white of game_status.WhiteKings) {
+                context.fillStyle = WHITE_COLOR;
+                context.beginPath();
+                const offset = (white[0] % 2 == 0) ? 1 : 0;
+                context.arc((white[1] + .5) * cell_side_length, (white[0] + .5) * cell_side_length, disk_radius, 0, Math.PI * 2);
+                context.closePath();
+                context.fill();
+                context.fillStyle = BLACK_COLOR;
+                context.beginPath();
+                context.rect((white[1] + .5) * cell_side_length - cross_line_width / 2, (white[0] + .5) * cell_side_length - cross_width / 2, cross_line_width, cross_width);
+                context.closePath();
+                context.fill();
+                context.beginPath();
+                context.rect((white[1] + .5) * cell_side_length - cross_width / 2, (white[0] + .5) * cell_side_length - cross_line_width / 2, cross_width, cross_line_width);
+                context.closePath();
+                context.fill()
+            }
+            if (game_status.Winner == 'BLACK' || game_status.Winner == "WHITE") {
+                context.globalAlpha = .8;
+                context.beginPath();
+                context.fillStyle = "#707070";
+                context.rect(0, 0, dimension, dimension);
+                context.fill();
+                context.closePath();
+                context.globalAlpha = 1;
+                const default_text_align = context.textAlign;
+                context.font = "32px Arial";
+                context.textAlign = "center";
+                context.fillStyle = "#000000";
+                if (game_status.Winner == '{{ own_color }}') {
+                    context.fillText("You won!", dimension / 2, dimension / 2);
+                } else {
+                    context.fillText(game_status.Winner + " won!", dimension / 2, dimension / 2);
+                }
+                context.textAlign = default_text_align;
+            }
         }
         function get_canvas_cell(ev) {
             const rect = canvas.getBoundingClientRect();
             return [parseInt(Math.floor((ev.clientY - rect.top) / cell_side_length)), parseInt(Math.floor((ev.clientX - rect.left) / cell_side_length))]
         }
         function get_disk_at(cell) {
-            for (const white of game_status.WhiteRegular) {
+            for (white of game_status.WhiteRegular) {
                 if (white[0] == cell[0] && white[1] == cell[1]) {
                     return {color: WHITE, type: REGULAR};
                 }
             }
-            for (const white of game_status.WhiteKings) {
+            for (white of game_status.WhiteKings) {
                 if (white[0] == cell[0] && white[1] == cell[1]) {
                     return {color: WHITE, type: KING};
                 }
             }
-            for (const black of game_status.BlackRegular) {
+            for (black of game_status.BlackRegular) {
                 if (black[0] == cell[0] && black[1] == cell[1]) {
                     return {color: BLACK, type: REGULAR};
                 }
             }
-            for (const black of game_status.BlackKings) {
+            for (black of game_status.BlackKings) {
                 if (black[0] == cell[0] && black[1] == cell[1]) {
                     return {color: BLACK, type: KING};
                 }
@@ -97,13 +155,14 @@
         function loadData() {
             $.get('{{ url_for('.get_game_status', game_id=game.GameId) }}', function (res) {
                 game_status = res.data;
+                $('#turn').text(game_status.Turn);
                 drawCanvas();
             }, "json")
         }
         let move = [];
         function moveUpdated() {
             let text = "";
-            for (const m of move) {
+            for (m of move) {
                 if (text.length != 0) {
                     text += " - ";
                 }

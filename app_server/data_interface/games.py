@@ -34,7 +34,8 @@ def convert_coordinate_game_state_to_tuple(game_state):
         "WhiteRegular": list(map(convert_coordinate_to_tuple, game_state['WhiteRegular'])),
         "BlackKings": list(map(convert_coordinate_to_tuple, game_state['BlackKings'])),
         "WhiteKings": list(map(convert_coordinate_to_tuple, game_state['WhiteKings'])),
-        "Turn": game_state['Turn']
+        "Turn": game_state['Turn'],
+        "Winner": game_state['Winner']
     }
 
 
@@ -115,11 +116,19 @@ def get_current_game_state(game_id):
 def update_game_state(game_id, game_state):
     dynamodb = boto_flask.resources['dynamodb']
     table = dynamodb.Table('GamesCollection')
+    winner = None
+    if 'Winner' in game_state:
+        winner = game_state['Winner']
+    winner_update_expression = ""
+    if winner == checkers.BLACK:
+        winner_update_expression = ", Winner = BlackPlayerId"
+    elif winner == checkers.WHITE:
+        winner_update_expression = ", Winner = WhitePlayerId"
     response = table.update_item(
         Key={
             "GameId": game_id
         },
-        UpdateExpression="SET GameStates = list_append(GameStates, :s)",
+        UpdateExpression="SET GameStates = list_append(GameStates, :s)"+winner_update_expression,
         ExpressionAttributeValues={
             ':s': [game_state],
         }
