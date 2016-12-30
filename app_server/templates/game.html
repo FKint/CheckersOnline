@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% block page_content %}
     <h1>Game '{{ game.GameName }}'</h1>
+    {% if subscribed %}
+        <a href="{{ url_for('.unsubscribe_from_game', game_id=game.GameId) }}">Unsubscribe from this game.</a>
+    {% else %}
+        <a href="{{ url_for('.subscribe_to_game', game_id=game.GameId) }}">Subscribe to this game.</a>
+    {% endif %}
     <div class="row">
         <div class="col-xs-12 col-md-8">
             <canvas width="500" height="500" id="board">
@@ -171,10 +176,10 @@
         function loadData() {
             $.get('{{ url_for('.get_game_status', game_id=game.GameId) }}', function (res) {
                 game_status = res.data;
-                if(game_status.Turn == "{{ own_color }}"){
+                if (game_status.Turn == "{{ own_color }}") {
                     $('#turn').text("It's your turn.");
-                }else{
-                    $('#turn').text("It's "+game_status.Turn+"'s turn.");
+                } else {
+                    $('#turn').text("It's " + game_status.Turn + "'s turn.");
                 }
                 drawCanvas();
             }, "json")
@@ -188,7 +193,7 @@
                 }
                 text += m[0].toString() + m[1].toString();
             }
-            $('span#move').text("Move: "+text);
+            $('span#move').text("Move: " + text);
         }
         $(document).ready(function () {
             setInterval(loadData, 1000);
@@ -234,9 +239,9 @@
                     }),
                     contentType: 'application/json;charset=UTF-8',
                     success: function (res) {
-                        if(res.error){
+                        if (res.error) {
                             $('#move-error').text(res.error);
-                        }else{
+                        } else {
                             $('#move-error').empty();
                         }
                         console.log(res);

@@ -3,7 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms import SelectField, StringField, SubmitField
 from wtforms.validators import InputRequired
 
-from data_interface import games, checkers
+from data_interface import games, checkers, users
 from helpers.session import login_required, get_user_id, get_user_account
 from application import app
 
@@ -38,8 +38,9 @@ def create_new_game():
 @app.route('/games')
 @login_required
 def show_games():
-    your_turn_games = games.get_your_turn_games(get_user_id())
-    return render_template("games.html", your_turn_games=your_turn_games)
+    your_turn_games = games.get_your_turn_games()
+    subscribed_games = games.get_subscribed_games()
+    return render_template("games.html", your_turn_games=your_turn_games, subscribed_games=subscribed_games)
 
 
 @app.route('/game/<string:game_id>/current')
@@ -58,7 +59,8 @@ def show_game(game_id):
         own_color = "BLACK"
     elif game_data['WhitePlayerId'] == get_user_id():
         own_color = "WHITE"
-    return render_template("game.html", game=game_data, own_color=own_color)
+    return render_template("game.html", game=game_data, own_color=own_color,
+                           subscribed=(game_id in get_user_account()['GameSubscriptions']))
 
 
 @app.route('/game/<string:game_id>/move', methods=['POST'])
@@ -70,3 +72,17 @@ def game_move(game_id):
         return jsonify({"ok": True, "error": None})
     except checkers.InvalidTurnException as ex:
         return jsonify({"ok": False, "error": ex.message})
+
+
+@app.route('/game/<string:game_id>/subscribe')
+@login_required
+def subscribe_to_game(game_id):
+    users.add_game_subscription(get_user_id(), game_id)
+    return redirect(url_for('.show_game', game_id=game_id))
+
+
+@app.route('/game/<string:game_id>/unsubscribe')
+@login_required
+def unsubscribe_from_game(game_id):
+    users.remove_game_subscription(get_user_id(), game_id)
+    return redirect(url_for('.show_game', game_id=game_id))

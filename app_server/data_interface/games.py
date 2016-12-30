@@ -1,22 +1,25 @@
 import uuid
 
-from data_interface import checkers
+from data_interface import checkers, users
+from helpers.session import get_user_account
 from application import boto_flask
 
 
-def get_your_turn_games(handle):
+def get_your_turn_games():
     # TODO: store this information on the user record
-    dynamodb = boto_flask.resources['dynamodb']
-    table = dynamodb.Table('UsersCollection')
-    response = table.get_item(Key={
-        'Handle': handle
-    })
-    if 'Item' not in response:
-        return None
-    user = response['Item']
-    if 'GamesCurrentTurn' in user:
-        return user['GamesCurrentTurn']
-    return []
+    user = get_user_account()
+    if 'GamesCurrentTurn' not in user:
+        return []
+    games = user['GamesCurrentTurn']
+    return [get_game_data(x) for x in games]
+
+
+def get_subscribed_games():
+    user = get_user_account()
+    if 'GameSubscriptions' not in user:
+        return []
+    games = user['GameSubscriptions']
+    return [get_game_data(x) for x in games]
 
 
 def convert_tuple_to_coordinate(t):
@@ -128,7 +131,7 @@ def update_game_state(game_id, game_state):
         Key={
             "GameId": game_id
         },
-        UpdateExpression="SET GameStates = list_append(GameStates, :s)"+winner_update_expression,
+        UpdateExpression="SET GameStates = list_append(GameStates, :s)" + winner_update_expression,
         ExpressionAttributeValues={
             ':s': [game_state],
         }

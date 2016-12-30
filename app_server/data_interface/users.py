@@ -1,5 +1,6 @@
 from helpers.session import get_user_id, update_user_account
 from application import boto_flask
+from data_interface import games
 
 
 def register_user(handle, password, email):
@@ -12,7 +13,6 @@ def register_user(handle, password, email):
             "Handle": handle,
             "Email": email,
             "Password": password,
-            "Friends": {"AI"}
         }
     )
     return None
@@ -36,7 +36,8 @@ def extract_public_user_fields(item):
     return {
         "Handle": item['Handle'],
         "Email": item['Email'],
-        "Friends": list(item['Friends']) if 'Friends' in item else []
+        "Friends": list(item['Friends']) if 'Friends' in item else [],
+        "GameSubscriptions": list(item['GameSubscriptions']) if 'GameSubscriptions' in item else []
     }
 
 
@@ -66,7 +67,6 @@ def add_friend(handle):
     dynamodb = boto_flask.resources['dynamodb']
     table = dynamodb.Table('UsersCollection')
     other_user = table.get_item(Key={'Handle': handle})
-    print(other_user)
     if 'Item' not in other_user or other_user['Item'] is None:
         return False
     table.update_item(
@@ -75,6 +75,32 @@ def add_friend(handle):
         ExpressionAttributeValues={
             ':f': {handle}
         }
+    )
+    update_user_account()
+    return True
+
+
+def add_game_subscription(user_id, game_id):
+    dynamodb = boto_flask.resources['dynamodb']
+    table = dynamodb.Table('UsersCollection')
+    table.update_item(
+        Key={"Handle": user_id},
+        UpdateExpression="ADD GameSubscriptions :g",
+        ExpressionAttributeValues={
+            ":g": {game_id}
+        }
+    )
+    update_user_account()
+    return True
+
+
+def remove_game_subscription(user_id, game_id):
+    dynamodb = boto_flask.resources['dynamodb']
+    table = dynamodb.Table('UsersCollection')
+    table.update_item(
+        Key={"Handle": user_id},
+        UpdateExpression="DELETE GameSubscriptions :g",
+        ExpressionAttributeValues={":g": {game_id}}
     )
     update_user_account()
     return True
