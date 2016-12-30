@@ -1,6 +1,6 @@
 from flask_nav.elements import View, Subgroup
 
-from utilities.ui.bootstrap import CustomNavbar
+from helpers.ui.bootstrap import CustomNavbar
 
 logged_in_nav_bar = CustomNavbar(
     'Checkers Online',

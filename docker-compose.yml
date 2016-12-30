@@ -2,8 +2,8 @@ version: '2'
 services:
     web:
         build: ./app_server
-        env_file:
-            - ./app_server/config.env
+        environment:
+            - ENVIRONMENT=development
         volumes:
             - ./app_server:/code
         working_dir: /code

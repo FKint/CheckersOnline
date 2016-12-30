@@ -141,3 +141,5 @@ fabric.properties
 
 *config.cfg
 *config.env
+private.*.*config
+app_server.zip

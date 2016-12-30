@@ -47,7 +47,6 @@ class CheckersState:
         }
 
     def validate_move(self, src, moves):
-        app.logger.debug('Calling validate_move({}, {})'.format(src, moves))
         if self.is_empty_cell(src):
             raise InvalidTurnException("Src is empty: {} {} {}".format(json.dumps(src), json.dumps(self.white_regular),
                                                                        json.dumps(self.black_regular)))
@@ -217,14 +216,11 @@ class CheckersState:
                 self.white_kings.remove(cell)
 
     def get_optimal_killing_for_piece(self, piece, location, captured=None, history=None):
-        app.logger.debug(
-            'Calling get_optimal_killing_for_piece({}, {}, {}, {})'.format(piece, location, captured, history))
         if captured is None:
             captured = set()
         if history is None:
             history = set()
         valid_captures = self.get_valid_captures(piece, location)
-        print(valid_captures)
         best = len(captured)
         for c in valid_captures:
             captured_piece = self.get_captured_piece(location, c)

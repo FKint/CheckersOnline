@@ -35,7 +35,7 @@ def convert_coordinate_game_state_to_tuple(game_state):
         "BlackKings": list(map(convert_coordinate_to_tuple, game_state['BlackKings'])),
         "WhiteKings": list(map(convert_coordinate_to_tuple, game_state['WhiteKings'])),
         "Turn": game_state['Turn'],
-        "Winner": game_state['Winner']
+        "Winner": game_state['Winner'] if 'Winner' in game_state else None
     }
 
 
@@ -70,7 +70,6 @@ def add_game_notifications(user_id, game_id):
             ":value1": {"S": game_id}
         }
     )
-    print(response)
 
 
 def generate_random_game_id():
@@ -86,7 +85,8 @@ def create_new_game(game_name, white_user_id, black_user_id):
         "WhitePlayerId": white_user_id,
         "BlackPlayerId": black_user_id,
         "GameName": game_name,
-        "GameStates": [get_default_game_state()]
+        "GameStates": [get_default_game_state()],
+        "Winner": None
     }
     # TODO: check for duplicate ID
     table.put_item(
