@@ -37,7 +37,8 @@ def extract_public_user_fields(item):
         "Handle": item['Handle'],
         "Email": item['Email'],
         "Friends": list(item['Friends']) if 'Friends' in item else [],
-        "GameSubscriptions": list(item['GameSubscriptions']) if 'GameSubscriptions' in item else []
+        "GameSubscriptions": list(item['GameSubscriptions']) if 'GameSubscriptions' in item else [],
+        "GameParticipations": list(item['GameParticipations']) if 'GameParticipations' in item else []
     }
 
 

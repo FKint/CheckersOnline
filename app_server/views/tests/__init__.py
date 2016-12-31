@@ -28,6 +28,10 @@ def convert_user_friends_sets_to_lists(elements):
             el['Friends'] = list(el['Friends'])
         if 'GameSubscriptions' in el:
             el['GameSubscriptions'] = list(el['GameSubscriptions'])
+        if 'GameParticipations' in el:
+            el['GameParticipations'] = list(el['GameParticipations'])
+        if 'GamesCurrentTurn' in el:
+            el['GamesCurrentTurn'] = list(el['GamesCurrentTurn'])
 
 
 @app.route('/tests/boto3/dynamodb/users')

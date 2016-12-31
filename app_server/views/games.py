@@ -40,7 +40,8 @@ def create_new_game():
 def show_games():
     your_turn_games = games.get_your_turn_games()
     subscribed_games = games.get_subscribed_games()
-    return render_template("games.html", your_turn_games=your_turn_games, subscribed_games=subscribed_games)
+    participating_games = games.get_participating_games()
+    return render_template("games.html", your_turn_games=your_turn_games, subscribed_games=subscribed_games, participating_games=participating_games)
 
 
 @app.route('/game/<string:game_id>/current')
@@ -59,6 +60,7 @@ def show_game(game_id):
         own_color = "BLACK"
     elif game_data['WhitePlayerId'] == get_user_id():
         own_color = "WHITE"
+
     return render_template("game.html", game=game_data, own_color=own_color,
                            subscribed=(game_id in get_user_account()['GameSubscriptions']))
 

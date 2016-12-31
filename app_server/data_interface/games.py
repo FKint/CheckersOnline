@@ -7,7 +7,7 @@ from application import boto_flask
 
 def get_your_turn_games():
     # TODO: store this information on the user record
-    user = get_user_account()
+    user = get_user_account(fresh=True)
     if 'GamesCurrentTurn' not in user:
         return []
     games = user['GamesCurrentTurn']
@@ -15,10 +15,17 @@ def get_your_turn_games():
 
 
 def get_subscribed_games():
-    user = get_user_account()
+    user = get_user_account(fresh=True)
     if 'GameSubscriptions' not in user:
         return []
     games = user['GameSubscriptions']
+    return [get_game_data(x) for x in games]
+
+def get_participating_games():
+    user = get_user_account(fresh=True)
+    if 'GameParticipations' not in user:
+        return []
+    games = user['GameParticipations']
     return [get_game_data(x) for x in games]
 
 

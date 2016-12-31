@@ -1,12 +1,22 @@
 from functools import wraps
+from datetime import datetime
 
 from flask import redirect, url_for, flash, session
 
 from data_interface import users
 
 
-def get_user_account():
+def get_user_account(fresh=False):
     if 'logged_in_user' in session:
+        if fresh:
+            should_update = True
+            if 'last_update' in session:
+                last_update = session['last_update']
+                difference = datetime.now() - last_update
+                if difference.total_seconds() < 2:
+                    should_update = False
+            if should_update:
+                update_user_account()
         return session['logged_in_user']
     return None
 
