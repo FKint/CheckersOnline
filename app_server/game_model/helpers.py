@@ -38,3 +38,7 @@ def get_default_game_state():
         "WhiteKings": [],
         "Turn": checkers.WHITE
     }
+
+
+def get_other_player(color):
+    return "WHITE" if color is "BLACK" else "BLACK"

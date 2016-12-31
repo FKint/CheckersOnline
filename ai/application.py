@@ -1,13 +1,15 @@
 import boto3
 import json
+from ai import AICheckersState
+import game_interface
+
 
 def get_move(game_state, configuration):
-    return None
-
-
-def submit_move(message, game_id, src, dest):
-    pass
-    # Remove message from queue
+    state = AICheckersState(game_state['Turn'], game_state['BlackRegular'], game_state['BlackKings'],
+                            game_state['WhiteRegular'], game_state['WhiteKings'], configuration)
+    move = state.get_best_move(5)
+    print(move)
+    return move[1]
 
 
 INTERVAL = 5
@@ -28,7 +30,7 @@ def main():
                 print(game_state)
                 move = get_move(game_state, ai_configuration)
                 if move is not None:
-                    submit_move(game_id, timestamp, move['src'], move['dest'])
+                    game_interface.execute_move(game_id, move[0], move[1:])
             print("Deleting message")
             message.delete()
             print("Message deleted")

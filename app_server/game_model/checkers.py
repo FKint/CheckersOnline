@@ -2,7 +2,6 @@ import json
 
 from game_model import helpers
 
-
 WHITE = "WHITE"
 BLACK = "BLACK"
 
@@ -58,7 +57,7 @@ class CheckersState:
                 raise InvalidTurnException("Invalid move")
             current_location = m
 
-        optimal_num_killed = self.get_optimal_killing(self.turn)
+        optimal_num_killed = self.get_optimal_killing_number()
 
         if len(moves) == 1 and self.is_step(src, moves[0], actor):
             if optimal_num_killed > 0:
@@ -205,7 +204,7 @@ class CheckersState:
             else:
                 self.white_kings.remove(cell)
 
-    def get_optimal_killing_for_piece(self, piece, location, captured=None, history=None):
+    def get_optimal_killing_number_for_piece(self, piece, location, captured=None, history=None):
         if captured is None:
             captured = set()
         if history is None:
@@ -224,7 +223,7 @@ class CheckersState:
                 new_history = {c}
                 new_captured = captured | {captured_piece}
             self.move_piece(location, c)
-            best = max(best, self.get_optimal_killing_for_piece(piece, c, new_captured, new_history))
+            best = max(best, self.get_optimal_killing_number_for_piece(piece, c, new_captured, new_history))
             self.move_piece(c, location)
         return best
 
@@ -246,18 +245,18 @@ class CheckersState:
                         valid_captures.append(new_loc)
         return valid_captures
 
-    def get_optimal_killing(self, color):
+    def get_optimal_killing_number(self):
         best = 0
-        if color == BLACK:
+        if self.turn == BLACK:
             for r in self.black_regular:
-                best = max(best, self.get_optimal_killing_for_piece((BLACK, REGULAR), r))
+                best = max(best, self.get_optimal_killing_number_for_piece((BLACK, REGULAR), r))
             for k in self.black_kings:
-                best = max(best, self.get_optimal_killing_for_piece((BLACK, KING), k))
+                best = max(best, self.get_optimal_killing_number_for_piece((BLACK, KING), k))
         else:
             for r in self.white_regular:
-                best = max(best, self.get_optimal_killing_for_piece((WHITE, REGULAR), r))
+                best = max(best, self.get_optimal_killing_number_for_piece((WHITE, REGULAR), r))
             for k in self.white_kings:
-                best = max(best, self.get_optimal_killing_for_piece((WHITE, KING), k))
+                best = max(best, self.get_optimal_killing_number_for_piece((WHITE, KING), k))
         return best
 
     def get_winner(self):
@@ -265,13 +264,16 @@ class CheckersState:
             return self.turn
         return None
 
+    black_regular_step_directions = [(1, 1), (1, -1)]
+    white_regular_step_directions = [(-1, 1), (-1, -1)]
+
     def can_move(self, color):
         if color == BLACK:
-            regular_directions = [(1, 1), (1, -1)]
+            regular_directions = CheckersState.black_regular_step_directions
             regular = self.black_regular
             kings = self.black_kings
         else:
-            regular_directions = [(-1, 1), (-1, -1)]
+            regular_directions = CheckersState.white_regular_step_directions
             regular = self.white_regular
             kings = self.white_kings
         for r in regular:
