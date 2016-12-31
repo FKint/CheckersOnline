@@ -3,7 +3,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import InputRequired
 
-from data_interface import users
+from data_interface import users, games
 from helpers.session import login_required, get_user_account
 from application import app
 
@@ -31,4 +31,6 @@ def show_friends():
 @app.route('/user/<string:user_id>')
 @login_required
 def show_user(user_id):
-    return "To be implemented: user {}".format(user_id)
+    user = users.get_public_user_account(user_id)
+    return render_template('user.html', user=user,
+                           participating_games=[games.get_game_data(x) for x in user['GameParticipations']])

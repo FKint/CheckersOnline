@@ -1,28 +1,28 @@
 import uuid
 
 from data_interface import checkers, users
-from helpers.session import get_user_account
 from application import boto_flask
+import time
 
 
-def get_your_turn_games():
-    # TODO: store this information on the user record
-    user = get_user_account(fresh=True)
+def get_your_turn_games(user_id=None):
+    user = users.get_user_account(user_id=user_id, fresh=True)
     if 'GamesCurrentTurn' not in user:
         return []
     games = user['GamesCurrentTurn']
     return [get_game_data(x) for x in games]
 
 
-def get_subscribed_games():
-    user = get_user_account(fresh=True)
+def get_subscribed_games(user_id=None):
+    user = users.get_user_account(user_id=user_id, fresh=True)
     if 'GameSubscriptions' not in user:
         return []
     games = user['GameSubscriptions']
     return [get_game_data(x) for x in games]
 
-def get_participating_games():
-    user = get_user_account(fresh=True)
+
+def get_participating_games(user_id=None):
+    user = users.get_user_account(user_id=user_id, fresh=True)
     if 'GameParticipations' not in user:
         return []
     games = user['GameParticipations']
@@ -96,7 +96,8 @@ def create_new_game(game_name, white_user_id, black_user_id):
         "BlackPlayerId": black_user_id,
         "GameName": game_name,
         "GameStates": [get_default_game_state()],
-        "Winner": None
+        "Winner": None,
+        "StateTimestamp": str(time.time())
     }
     # TODO: check for duplicate ID
     table.put_item(
@@ -123,7 +124,7 @@ def get_current_game_state(game_id):
     return convert_coordinate_game_state_to_tuple(states[-1])
 
 
-def update_game_state(game_id, game_state):
+def update_game_state(game_id, game_state, timestamp=None):
     dynamodb = boto_flask.resources['dynamodb']
     table = dynamodb.Table('GamesCollection')
     winner = None
@@ -134,12 +135,19 @@ def update_game_state(game_id, game_state):
         winner_update_expression = ", Winner = BlackPlayerId"
     elif winner == checkers.WHITE:
         winner_update_expression = ", Winner = WhitePlayerId"
+    expression_attribute_values = {
+        ":s": [game_state],
+        ":t1": str(time.time())
+    }
+    condition_expression = "attribute_exists(GameId)"
+    if timestamp is not None:
+        expression_attribute_values[':t0'] = timestamp
+        condition_expression = "StateTimestamp = :t0"
     response = table.update_item(
         Key={
             "GameId": game_id
         },
-        UpdateExpression="SET GameStates = list_append(GameStates, :s)" + winner_update_expression,
-        ExpressionAttributeValues={
-            ':s': [game_state],
-        }
+        UpdateExpression="SET GameStates = list_append(GameStates, :s), StateTimestamp = :t1" + winner_update_expression,
+        ExpressionAttributeValues=expression_attribute_values,
+        ConditionExpression=condition_expression,
     )

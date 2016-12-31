@@ -1,6 +1,7 @@
 from helpers.session import get_user_id, update_user_account
 from application import boto_flask
 from data_interface import games
+from helpers import session
 
 
 def register_user(handle, password, email):
@@ -41,6 +42,12 @@ def extract_public_user_fields(item):
         "GameParticipations": list(item['GameParticipations']) if 'GameParticipations' in item else [],
         "GamesCurrentTurn": list(item['GamesCurrentTurn']) if 'GamesCurrentTurn' in item else []
     }
+
+
+def get_user_account(user_id, fresh=False):
+    if user_id is None:
+        return session.get_user_account(fresh)
+    return get_public_user_account(user_id)
 
 
 def get_public_user_account(handle):

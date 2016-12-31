@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block page_content %}
+    <h1>{{ user.Handle }} at Checkers Online!</h1>
+    <a href="{{ url_for('.start_game_with_user', user_id=user.Handle) }}"
+       class="btn btn-md btn-default">Start game with {{ user.Handle }}</a>
+    <h2>All active games</h2>
+    <ul>
+        {% for game in participating_games %}
+            <li>
+                Game between {{ game.WhitePlayerId }} (WHITE) and {{ game.BlackPlayerId }} (BLACK).
+                <a href="{{ url_for('.show_game', game_id=game.GameId) }}">{{ game.GameName }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

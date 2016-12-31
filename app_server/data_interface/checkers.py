@@ -6,11 +6,12 @@ from application import app
 
 def execute_move(game_id, src, dest):
     db_game_state = games.get_current_game_state(game_id)
+    timestamp = db_game_state['Timestamp'] if 'Timestamp' in db_game_state else None
     checkers_state = CheckersState(db_game_state['Turn'], db_game_state['BlackRegular'], db_game_state['BlackKings'],
                                    db_game_state['WhiteRegular'], db_game_state['WhiteKings'])
     checkers_state.validate_move(tuple(src), list(map(tuple, dest)))
     new_db_game_state = checkers_state.get_game_state_after_turn()
-    games.update_game_state(game_id, new_db_game_state)
+    games.update_game_state(game_id, new_db_game_state, timestamp=timestamp)
 
 
 WHITE = "WHITE"

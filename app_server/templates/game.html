@@ -196,7 +196,8 @@
             $('span#move').text("Move: " + text);
         }
         $(document).ready(function () {
-            setInterval(loadData, 1000);
+            loadData();
+            setInterval(loadData, 5000);
             drawCanvas();
             $('canvas#board').click(function (ev) {
                 const clicked_cell = get_canvas_cell(ev);

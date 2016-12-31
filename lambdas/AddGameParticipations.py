@@ -1,10 +1,10 @@
 from __future__ import print_function
 
-import json
 import boto3
 
 dynamodb = boto3.resource('dynamodb')
 users_table = dynamodb.Table('UsersCollection')
+
 
 def add_game_participation(player_id, game_id):
     if str(player_id) == str("-1"):
@@ -15,6 +15,7 @@ def add_game_participation(player_id, game_id):
         UpdateExpression="ADD GameParticipations :g",
         ExpressionAttributeValues={":g": {game_id}}
     )
+
 
 def lambda_handler(event, context):
     for record in event['Records']:

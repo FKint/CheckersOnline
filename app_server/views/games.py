@@ -35,13 +35,38 @@ def create_new_game():
     return render_template('new_game.html', new_game_form=form)
 
 
+class NewGameWithUserForm(FlaskForm):
+    name = StringField('Name', validators=[InputRequired()])
+    own_side = SelectField('Your colour', choices=[(checkers.WHITE, 'White'), (checkers.BLACK, 'Black')],
+                           default=checkers.WHITE)
+    submit = SubmitField('Submit')
+
+
+@app.route('/games/new/opponent/<string:user_id>', methods=['GET', 'POST'])
+@login_required
+def start_game_with_user(user_id):
+    form = NewGameWithUserForm()
+    if form.validate_on_submit():
+        if form.own_side.data == checkers.WHITE:
+            white_user_id = get_user_id()
+            black_user_id = user_id
+        else:
+            white_user_id = user_id
+            black_user_id = get_user_id()
+        game_id = games.create_new_game(game_name=form.name.data, white_user_id=white_user_id,
+                                        black_user_id=black_user_id)
+        return redirect(url_for('.show_game', game_id=game_id))
+    return render_template('new_game_with_user.html', user_id=user_id, new_game_form=form)
+
+
 @app.route('/games')
 @login_required
 def show_games():
     your_turn_games = games.get_your_turn_games()
     subscribed_games = games.get_subscribed_games()
     participating_games = games.get_participating_games()
-    return render_template("games.html", your_turn_games=your_turn_games, subscribed_games=subscribed_games, participating_games=participating_games)
+    return render_template("games.html", your_turn_games=your_turn_games, subscribed_games=subscribed_games,
+                           participating_games=participating_games)
 
 
 @app.route('/game/<string:game_id>/current')
