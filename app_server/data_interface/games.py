@@ -1,8 +1,20 @@
+import time
 import uuid
 
-from data_interface import checkers, users
 from application import boto_flask
-import time
+from data_interface import users
+from game_model import checkers, helpers
+
+
+def execute_move(game_id, src, dest):
+    db_game_state = get_current_game_state(game_id)
+    timestamp = db_game_state['Timestamp'] if 'Timestamp' in db_game_state else None
+    checkers_state = checkers.CheckersState(db_game_state['Turn'], db_game_state['BlackRegular'],
+                                            db_game_state['BlackKings'],
+                                            db_game_state['WhiteRegular'], db_game_state['WhiteKings'])
+    checkers_state.validate_move(tuple(src), list(map(tuple, dest)))
+    new_db_game_state = checkers_state.get_game_state_after_turn()
+    update_game_state(game_id, new_db_game_state, timestamp=timestamp)
 
 
 def get_your_turn_games(user_id=None):
@@ -27,45 +39,6 @@ def get_participating_games(user_id=None):
         return []
     games = user['GameParticipations']
     return [get_game_data(x) for x in games]
-
-
-def convert_tuple_to_coordinate(t):
-    return "{}-{}".format(t[0], t[1])
-
-
-def convert_coordinate_to_tuple(c):
-    r, c = c.split('-')
-    return int(r), int(c)
-
-
-def convert_coordinate_game_state_to_tuple(game_state):
-    return {
-        "BlackRegular": list(map(convert_coordinate_to_tuple, game_state['BlackRegular'])),
-        "WhiteRegular": list(map(convert_coordinate_to_tuple, game_state['WhiteRegular'])),
-        "BlackKings": list(map(convert_coordinate_to_tuple, game_state['BlackKings'])),
-        "WhiteKings": list(map(convert_coordinate_to_tuple, game_state['WhiteKings'])),
-        "Turn": game_state['Turn'],
-        "Winner": game_state['Winner'] if 'Winner' in game_state else None
-    }
-
-
-def get_default_game_state():
-    black_regular = []
-    white_regular = []
-    for i in range(4):
-        black_regular.extend(
-            [(i, (i + 1) % 2 + 2 * j) for j in range(5)]
-        )
-        white_regular.extend(
-            [(9 - i, i % 2 + 2 * j) for j in range(5)]
-        )
-    return {
-        "BlackRegular": list(map(convert_tuple_to_coordinate, black_regular)),
-        "BlackKings": [],
-        "WhiteRegular": list(map(convert_tuple_to_coordinate, white_regular)),
-        "WhiteKings": [],
-        "Turn": checkers.WHITE
-    }
 
 
 def add_game_notifications(user_id, game_id):
@@ -95,7 +68,7 @@ def create_new_game(game_name, white_user_id, black_user_id):
         "WhitePlayerId": white_user_id,
         "BlackPlayerId": black_user_id,
         "GameName": game_name,
-        "GameStates": [get_default_game_state()],
+        "GameStates": [helpers.get_default_game_state()],
         "Winner": None,
         "StateTimestamp": str(time.time())
     }
@@ -121,7 +94,7 @@ def get_game_data(game_id):
 def get_current_game_state(game_id):
     game_data = get_game_data(game_id)
     states = game_data['GameStates']
-    return convert_coordinate_game_state_to_tuple(states[-1])
+    return helpers.convert_coordinate_game_state_to_tuple(states[-1])
 
 
 def update_game_state(game_id, game_state, timestamp=None):

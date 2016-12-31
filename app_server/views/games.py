@@ -3,9 +3,10 @@ from flask_wtf import FlaskForm
 from wtforms import SelectField, StringField, SubmitField
 from wtforms.validators import InputRequired
 
-from data_interface import games, checkers, users
-from helpers.session import login_required, get_user_id, get_user_account
 from application import app
+from data_interface import games, users
+from game_model import checkers
+from helpers.session import login_required, get_user_id, get_user_account
 
 
 class NewGameForm(FlaskForm):
@@ -95,7 +96,7 @@ def show_game(game_id):
 def game_move(game_id):
     data = request.get_json()
     try:
-        checkers.execute_move(game_id, data['src'], data['dst'])
+        games.execute_move(game_id, data['src'], data['dst'])
         return jsonify({"ok": True, "error": None})
     except checkers.InvalidTurnException as ex:
         return jsonify({"ok": False, "error": ex.message})

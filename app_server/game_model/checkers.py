@@ -1,17 +1,6 @@
 import json
 
-from data_interface import games
-from application import app
-
-
-def execute_move(game_id, src, dest):
-    db_game_state = games.get_current_game_state(game_id)
-    timestamp = db_game_state['Timestamp'] if 'Timestamp' in db_game_state else None
-    checkers_state = CheckersState(db_game_state['Turn'], db_game_state['BlackRegular'], db_game_state['BlackKings'],
-                                   db_game_state['WhiteRegular'], db_game_state['WhiteKings'])
-    checkers_state.validate_move(tuple(src), list(map(tuple, dest)))
-    new_db_game_state = checkers_state.get_game_state_after_turn()
-    games.update_game_state(game_id, new_db_game_state, timestamp=timestamp)
+from game_model import helpers
 
 
 WHITE = "WHITE"
@@ -41,10 +30,10 @@ class CheckersState:
         return {
             "Winner": self.get_winner(),
             "Turn": self.get_next_turn(),
-            "BlackRegular": list(map(games.convert_tuple_to_coordinate, self.black_regular)),
-            "BlackKings": list(map(games.convert_tuple_to_coordinate, self.black_kings)),
-            "WhiteRegular": list(map(games.convert_tuple_to_coordinate, self.white_regular)),
-            "WhiteKings": list(map(games.convert_tuple_to_coordinate, self.white_kings))
+            "BlackRegular": list(map(helpers.convert_tuple_to_coordinate, self.black_regular)),
+            "BlackKings": list(map(helpers.convert_tuple_to_coordinate, self.black_kings)),
+            "WhiteRegular": list(map(helpers.convert_tuple_to_coordinate, self.white_regular)),
+            "WhiteKings": list(map(helpers.convert_tuple_to_coordinate, self.white_kings))
         }
 
     def validate_move(self, src, moves):
