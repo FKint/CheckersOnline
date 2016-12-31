@@ -9,7 +9,7 @@
         {% for game in your_turn_games %}
             <li>
                 Game against {{ game.BlackPlayerId }}.
-                <a href="{{ url_for('.show_game', game_id=game.GameId) }}">Play!</a>
+                <a href="{{ url_for('.show_game', game_id=game.GameId) }}">{{ game.GameName }}</a>
             </li>
         {% endfor %}
     </ul>
@@ -29,7 +29,7 @@
                 {% else %}
                     {{ game.WhitePlayerId }}
                 {% endif %}.
-                <a href="{{ url_for('.show_game', game_id=game.GameId) }}">Play!</a>
+                <a href="{{ url_for('.show_game', game_id=game.GameId) }}">{{ game.GameName }}</a>
             </li>
         {% endfor %}
     </ul>
@@ -38,7 +38,7 @@
         {% for game in subscribed_games %}
             <li>
                 Game between {{ game.WhitePlayerId }} (WHITE) and {{ game.BlackPlayerId }} (BLACK).
-                <a href="{{ url_for('.show_game', game_id=game.GameId) }}">Watch!</a>
+                <a href="{{ url_for('.show_game', game_id=game.GameId) }}">{{ game.GameName }}</a>
             </li>
         {% endfor %}
     </ul>
