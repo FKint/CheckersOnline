@@ -12,10 +12,9 @@ def main():
     queue = sqs.get_queue_by_name(QueueName="CheckersOnlineAI")
     while True:
         print("Receiving queue messages")
-        for message in queue.receive_messages(MessageAttributeNames=['GameId', 'AIConfiguration', 'Timestamp']):
-            print("Found message")
-            if message.message_attributes is not None:
-                requests.post("http://ai/play-ai", json=message)
+        for message in queue.receive_messages():
+            print("Found message: {}".format(message.body))
+            requests.post("http://ai/play-ai", json=message.body)
             message.delete()
             print("Message deleted")
         time.sleep(INTERVAL)

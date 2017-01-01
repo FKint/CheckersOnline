@@ -5,10 +5,8 @@ from flask_boto3 import Boto3
 import os
 
 application = Flask("Checkers Online AI")
-if os.environ['ENVIRONMENT'] == "deployment":
-    pass
-else:
-    application.config.from_pyfile("config/private.{}.config".format(os.environ['ENVIRONMENT']))
+application.config.from_pyfile("config/public.general.config")
+application.config.from_pyfile("config/private.{}.config".format(os.environ['ENVIRONMENT']))
 boto_flask = Boto3(application)
 
 
@@ -26,21 +24,33 @@ def play_ai():
     message = request.get_json()
     application.logger.info("Received message: {}".format(message))
     print("Received message: {}".format(message))
-
+    if 'GameId' not in message or 'AIConfiguration' not in message or 'Timestamp' not in message:
+        return jsonify({
+            "msg": "Invalid message"
+        })
     game_id = message['GameId']
-    print("playing game {}!".format(game_id))
     ai_configuration = message['AIConfiguration']
     timestamp = message['Timestamp']
+    print("playing game {}!".format(game_id))
     game_state = game_interface.get_current_game_state(game_id, timestamp=timestamp)
     if game_state is not None:
         move = get_move(game_state, ai_configuration)
         if move is not None and len(move) > 1:
             game_interface.execute_move(game_id, move[0], move[1:], timestamp)
+            return jsonify({
+                "msg": "Move executed",
+                "move": move
+            })
         else:
             print("Didn't find a valid move: {}".format(move))
+            return jsonify({
+                "msg": "No valid move found!"
+            })
     else:
         print("Current game state timestamp does not match SQS message game state timestamp")
-    return jsonify(message)
+        return jsonify({
+            "msg": "Timestamp doesn't match."
+        })
 
 
 def main():
