@@ -26,20 +26,20 @@ def play_ai():
     message = request.get_json()
     application.logger.info("Received message: {}".format(message))
     print("Received message: {}".format(message))
-    if message.message_attributes is not None:
-        game_id = message.message_attributes.get('GameId')['StringValue']
-        print("playing game {}!".format(game_id))
-        ai_configuration = message.message_attributes.get('AIConfiguration')['StringValue']
-        timestamp = message.message_attributes.get('Timestamp')['StringValue']
-        game_state = game_interface.get_current_game_state(game_id, timestamp=timestamp)
-        if game_state is not None:
-            move = get_move(game_state, ai_configuration)
-            if move is not None and len(move) > 1:
-                game_interface.execute_move(game_id, move[0], move[1:], timestamp)
-            else:
-                print("Didn't find a valid move: {}".format(move))
+
+    game_id = message['GameId']
+    print("playing game {}!".format(game_id))
+    ai_configuration = message['AIConfiguration']
+    timestamp = message['Timestamp']
+    game_state = game_interface.get_current_game_state(game_id, timestamp=timestamp)
+    if game_state is not None:
+        move = get_move(game_state, ai_configuration)
+        if move is not None and len(move) > 1:
+            game_interface.execute_move(game_id, move[0], move[1:], timestamp)
         else:
-            print("Current game state timestamp does not match SQS message game state timestamp")
+            print("Didn't find a valid move: {}".format(move))
+    else:
+        print("Current game state timestamp does not match SQS message game state timestamp")
     return jsonify(message)
 
 
