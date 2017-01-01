@@ -84,10 +84,10 @@ class AICheckersState(CheckersState):
                 #new_captured = captured
             #new_history = {c}
             new_captured = captured | {captured_piece}
-            self.move_piece(location, c)
+            self.move_piece(location, c, end_of_move=False)
             number, moves = self.get_optimal_killing_for_piece(piece, c, new_captured, history=history)
             best_number, best_moves = extend_best_array(best_number, best_moves, number, moves)
-            self.move_piece(c, location)
+            self.move_piece(c, location, end_of_move=False)
         return best_number, best_moves
 
     def get_optimal_killings(self):

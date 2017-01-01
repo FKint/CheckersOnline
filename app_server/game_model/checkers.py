@@ -45,14 +45,14 @@ class CheckersState:
         if len(moves) == 0:
             raise InvalidTurnException("No moves")
         for m in moves:
-            if not self.is_empty_cell(m):
+            if not self.is_empty_cell(m) and src != m:
                 raise InvalidTurnException("Dest is not empty")
         current_location = src
         for m in moves:
             if self.is_step(current_location, m, actor):
                 if not len(moves) == 1:
                     raise InvalidTurnException("Steps can only be done as the only move")
-            elif not self.is_jump(current_location, m, actor):
+            elif not self.is_jump(current_location, m, actor, src):
                 raise InvalidTurnException("Invalid move")
             current_location = m
 
@@ -61,8 +61,10 @@ class CheckersState:
         if len(moves) == 1 and self.is_step(src, moves[0], actor):
             if optimal_num_killed > 0:
                 raise InvalidTurnException("Should capture some!")
-            self.move_piece(src, moves[0])
+            self.move_piece(src, moves[0], end_of_move=True)
         else:
+            if len(moves) != optimal_num_killed:
+                raise InvalidTurnException("More moves than optimal number of captures!")
             current_location = src
             killed_pieces = set()
             for m in moves:
@@ -75,7 +77,7 @@ class CheckersState:
                 current_location = m
             if len(killed_pieces) < optimal_num_killed:
                 raise InvalidTurnException("Should capture more!")
-            self.move_piece(src, moves[-1])
+            self.move_piece(src, moves[-1], end_of_move=True)
             for captured in killed_pieces:
                 self.remove_piece(captured)
 
@@ -129,10 +131,10 @@ class CheckersState:
             return False
         return True
 
-    def is_jump(self, src, dest, piece):
+    def is_jump(self, src, dest, piece, original_src):
         if not CheckersState.is_valid_location(dest):
             return False
-        if not self.is_empty_cell(dest):
+        if not self.is_empty_cell(dest) and original_src != dest:
             return False
         if abs(src[0] - dest[0]) != abs(src[1] - dest[1]):
             return False
@@ -167,12 +169,12 @@ class CheckersState:
                 captured_piece = self.get_piece_at(loc), loc
         return captured_piece
 
-    def move_piece(self, src, dest):
+    def move_piece(self, src, dest, end_of_move=True):
         piece = self.get_piece_at(src)
         if piece[0] == BLACK:
             if piece[1] == REGULAR:
                 self.black_regular.remove(src)
-                if dest[0] == 9:
+                if dest[0] == 9 and end_of_move:
                     self.black_kings.append(dest)
                 else:
                     self.black_regular.append(dest)
@@ -182,7 +184,7 @@ class CheckersState:
         else:
             if piece[1] == REGULAR:
                 self.white_regular.remove(src)
-                if dest[0] == 0:
+                if dest[0] == 0 and end_of_move:
                     self.white_kings.append(dest)
                 else:
                     self.white_regular.append(dest)
@@ -206,8 +208,6 @@ class CheckersState:
     def get_optimal_killing_number_for_piece(self, piece, location, captured=None):
         if captured is None:
             captured = set()
-        #if history is None:
-        #    history = set()
         valid_captures = self.get_valid_captures(piece, location)
         best = len(captured)
         for c in valid_captures:
@@ -216,15 +216,10 @@ class CheckersState:
             if captured_piece in captured:
                 #No captured piece can be jumped twice
                 continue
-                #if c in history:
-                #    continue
-                #new_history = history | {c}
-                #new_captured = captured
-            #new_history = {c}
             new_captured = captured | {captured_piece}
-            self.move_piece(location, c)
+            self.move_piece(location, c, end_of_move=False)
             best = max(best, self.get_optimal_killing_number_for_piece(piece, c, new_captured))
-            self.move_piece(c, location)
+            self.move_piece(c, location, end_of_move=False)
         return best
 
     regular_capture_directions = [(-2, -2), (2, -2), (-2, 2), (2, 2)]
@@ -235,13 +230,13 @@ class CheckersState:
         if piece[1] == REGULAR:
             for c in CheckersState.regular_capture_directions:
                 new_loc = location[0] + c[0], location[1] + c[1]
-                if self.is_jump(location, new_loc, piece):
+                if self.is_jump(location, new_loc, piece, location):
                     valid_captures.append(new_loc)
         else:
             for d in CheckersState.all_directions_vectors:
                 for j in range(2, 9):
                     new_loc = location[0] + d[0] * j, location[1] + d[1] * j
-                    if self.is_jump(location, new_loc, piece):
+                    if self.is_jump(location, new_loc, piece, location):
                         valid_captures.append(new_loc)
         return valid_captures
 
@@ -285,12 +280,12 @@ class CheckersState:
                     return True
             for rcd in CheckersState.regular_capture_directions:
                 new_loc = r[0] + rcd[0], r[1] + rcd[1]
-                if self.is_jump(r, new_loc, REGULAR):
+                if self.is_jump(r, new_loc, REGULAR, r):
                     return True
         for k in kings:
             for d in CheckersState.all_directions_vectors:
                 for j in range(2, 9):
                     new_loc = k[0] + d[0] * j, k[1] + d[1] * j
-                    if self.is_jump(k, new_loc, KING) or self.is_step(k, new_loc, (KING, color)):
+                    if self.is_jump(k, new_loc, KING, k) or self.is_step(k, new_loc, (KING, color)):
                         return True
         return False
