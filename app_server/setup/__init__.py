@@ -2,7 +2,7 @@ from application import app, boto_flask
 import click
 import json
 
-
+@app.cli.command()
 def create_users_table():
     client = boto_flask.clients['dynamodb']
     response = client.create_table(
@@ -44,6 +44,7 @@ def create_users_table():
     return click.echo(json.dumps(response))
 
 
+@app.cli.command()
 def create_games_table():
     client = boto_flask.clients['dynamodb']
     response = client.create_table(

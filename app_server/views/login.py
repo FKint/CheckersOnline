@@ -9,14 +9,14 @@ from application import app
 
 
 class LoginForm(FlaskForm):
-    handle = StringField("Handle")
+    handle = StringField("Handle (username)")
     password = PasswordField("Password")
     submit = SubmitField("Submit")
 
 
 # TODO: add copy of handles and email addresses to local instance to check for duplicates
 class RegisterForm(FlaskForm):
-    handle = StringField("Handle", validators=[InputRequired()])
+    handle = StringField("Handle (username)", validators=[InputRequired()])
     email = StringField("Email", validators=[Email(), InputRequired()])
     password1 = PasswordField("Password", validators=[InputRequired(), Length(min=6, max=30)])
     password2 = PasswordField("Repeat password",

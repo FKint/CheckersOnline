@@ -7,6 +7,23 @@
         <a href="{{ url_for('.subscribe_to_game', game_id=game.GameId) }}">Subscribe to this game.</a>
     {% endif %}
     <div class="row">
+        <div class="col-xs-12">
+            <p>
+                This version of the application uses a basic user interface. You decide what move you want to make by
+                first clicking on the piece you want to move and then consecutively clicking on the tiles the piece has
+                to go to.
+            </p>
+            <p>
+                In order to actually submit your move, you need to click the "Submit Move" button. You can review your
+                current move at any time above that button. The "Clear Move" button lets you reset your action.
+            </p>
+            <p>
+                The game uses the rules as stated on <a href="https://www.itsyourturn.com/t_helptopic2130.html">It's
+                your turn</a>.
+            </p>
+        </div>
+    </div>
+    <div class="row">
         <div class="col-xs-12 col-md-8">
             <canvas width="500" height="500" id="board">
             </canvas>
@@ -20,11 +37,23 @@
                 </tr>
                 <tr>
                     <td>Black</td>
-                    <td>{{ game.BlackPlayerId }}</td>
+                    <td>
+                        {{ game.BlackPlayerId }}
+                        {% if own_color == "BLACK" %}
+                            <b>(you)</b>
+                        {% endif %}
+                    </td>
                 </tr>
                 <tr>
-                    <td>White</td>
-                    <td>{{ game.WhitePlayerId }}</td>
+                    <td>
+                        White
+                    </td>
+                    <td>
+                        {{ game.WhitePlayerId }}
+                        {% if own_color == "WHITE" %}
+                            <b>(you)</b>
+                        {% endif %}
+                    </td>
                 </tr>
             </table>
             <h2>Current turn</h2>
@@ -40,28 +69,32 @@
 {% block scripts %}
     {{ super() }}
     <script type="text/javascript">
+        const INTERVAL = 2000; // In ms
         const WHITE = "WHITE";
         const BLACK = "BLACK";
         const REGULAR = "REGULAR";
         const KING = "KING";
-        let game_status = null;
+        var game_status = null;
         const DIMENSION = 10;
-        let canvas = null;
+        var canvas = null;
         const dimension = 500;
         const cell_side_length = dimension / DIMENSION;
         const cross_width = cell_side_length / 2;
         const cross_line_width = cell_side_length / 10;
         const BLACK_COLOR = "#000000";
         const WHITE_COLOR = "#FFFFFF";
+
+        var move = [];
+
         function drawCanvas() {
             canvas = $('canvas#board')[0];
             const context = canvas.getContext("2d");
             context.clearRect(0, 0, canvas.width, canvas.height);
             const disk_radius = 20;
             context.fillStyle = "#A0522D";
-            for (let i = 0; i < DIMENSION; ++i) {
+            for (var i = 0; i < DIMENSION; ++i) {
                 const offset = (i % 2 == 0) ? 1 : 0;
-                for (let j = 0; j < DIMENSION / 2; ++j) {
+                for (var j = 0; j < DIMENSION / 2; ++j) {
                     context.beginPath();
                     context.rect((j * 2 + offset) * cell_side_length, i * cell_side_length, cell_side_length, cell_side_length);
                     context.closePath();
@@ -184,9 +217,8 @@
                 drawCanvas();
             }, "json")
         }
-        let move = [];
         function moveUpdated() {
-            let text = "";
+            var text = "";
             for (m of move) {
                 if (text.length != 0) {
                     text += " - ";
@@ -197,7 +229,7 @@
         }
         $(document).ready(function () {
             loadData();
-            setInterval(loadData, 5000);
+            setInterval(loadData, INTERVAL);
             drawCanvas();
             $('canvas#board').click(function (ev) {
                 const clicked_cell = get_canvas_cell(ev);

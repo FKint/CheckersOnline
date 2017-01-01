@@ -21,7 +21,7 @@ nav.register_element('login_navbar', logged_in_nav_bar)
 nav.register_element('not_login_navbar', not_logged_in_nav_bar)
 
 from views import *
-
+from setup import *
 
 def main():
     app.run(host="0.0.0.0")

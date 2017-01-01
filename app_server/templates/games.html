@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% block page_content %}
     <h1>Games</h1>
+    <p>If you want to start a new game, click on the following button:</p>
     <a class="btn btn-default btn-lg" href="{{ url_for('.create_new_game') }}">
         Create new game
     </a>
     <h2>Your turn!</h2>
+    <p>The list below the games in which it's your turn to play!</p>
     <ul>
         {% for game in your_turn_games %}
             <li>
@@ -14,6 +16,7 @@
         {% endfor %}
     </ul>
     <h2>All active games</h2>
+    <p>The list below shows you all games you're playing in.</p>
     <ul>
         {% for game in participating_games %}
             <li>
@@ -34,6 +37,7 @@
         {% endfor %}
     </ul>
     <h2>Watching</h2>
+    <p>The list below shows you all games you've subscribed to.</p>
     <ul>
         {% for game in subscribed_games %}
             <li>

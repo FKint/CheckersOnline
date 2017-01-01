@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% block page_content %}
     <h1>Start a new game of checkers!</h1>
+    <p>You can select the computer or one of your friends to play against. Go to <a
+            href="{{ url_for('.show_friends') }}">the friends page</a> to add new friends.</p>
     {{ wtf.quick_form(new_game_form) }}
 {% endblock %}

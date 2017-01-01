@@ -1,6 +1,17 @@
 {% extends "base.html" %}
 {% block page_content %}
     <h1>Sign up for Checkers Online!</h1>
+    <div class="alert alert-warning">
+        <p>
+            Don't use a password that you use for other services. As this platform is merely a demo, no strong security
+            measures are taken.
+            No, we don't even hash your password.
+        </p>
+        <p>
+            Feel free to use a fake email address, as we currently don't use it to verify your account. We might use it
+            to notify you of changes to the platform though.
+        </p>
+    </div>
     {{ wtf.quick_form(register_form) }}
     Already have an account? <a href="{{ url_for('.login') }}">Sign in.</a>
 {% endblock %}

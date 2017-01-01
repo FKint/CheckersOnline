@@ -10,8 +10,8 @@ from helpers.session import login_required, get_user_id, get_user_account
 
 
 class NewGameForm(FlaskForm):
-    name = StringField('Name', validators=[InputRequired()])
-    opponent = SelectField('Opponent', choices=[("-1", 'Computer')], validators=[])
+    name = StringField('Game name', validators=[InputRequired()])
+    opponent = SelectField('Opponent (computer or one of your friends)', choices=[("-1", 'Computer')], validators=[])
     own_side = SelectField('Your colour', choices=[(checkers.WHITE, 'White'), (checkers.BLACK, 'Black')],
                            default=checkers.WHITE)
     submit = SubmitField('Submit')
@@ -37,7 +37,7 @@ def create_new_game():
 
 
 class NewGameWithUserForm(FlaskForm):
-    name = StringField('Name', validators=[InputRequired()])
+    name = StringField('Game name', validators=[InputRequired()])
     own_side = SelectField('Your colour', choices=[(checkers.WHITE, 'White'), (checkers.BLACK, 'Black')],
                            default=checkers.WHITE)
     submit = SubmitField('Submit')

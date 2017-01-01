@@ -1,4 +1,13 @@
 {% extends "base.html" %}
 {% block page_content %}
     <h1>Checkers Online!</h1>
+    {% if session.logged_in_user %}
+        Hi, {{ session.logged_in_user.Handle }}, how are you?
+        Why don't you have a look at your <a href="{{ url_for('.show_games') }}">checkers games</a> or your
+        <a href="{{ url_for('.show_friends') }}">friends list</a> to start a new game of checkers?.
+    {% else %}
+        Hi! You look new here. Go to the <a href="{{ url_for('.register') }}">registration page</a> to create
+        an account to play Checkers Online.<br>
+        If you already have an account, you can go straight to the <a href="{{ url_for('.login') }}">login</a> page.
+    {% endif %}
 {% endblock %}
