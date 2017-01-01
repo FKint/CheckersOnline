@@ -5,7 +5,10 @@ from flask_boto3 import Boto3
 import os
 
 application = Flask("Checkers Online AI")
-application.config.from_pyfile("config/private.{}.config".format(os.environ['ENVIRONMENT']))
+if os.environ['ENVIRONMENT'] == "deployment":
+    pass
+else:
+    application.config.from_pyfile("config/private.{}.config".format(os.environ['ENVIRONMENT']))
 boto_flask = Boto3(application)
 
 
