@@ -4,7 +4,7 @@ import requests
 from flask import jsonify
 
 from application import app, boto_flask
-
+from data_interface import games
 
 @app.route('/tests/ai')
 def test_ai():
@@ -66,4 +66,37 @@ def test_insert_game_dynamodb():
             "Timestamp": str(datetime.datetime.now())
         }
     )
+    return jsonify(response)
+
+
+@app.route('/tests/game/<string:game_id>/ai/sqs/add')
+def test_insert_ai_queue(game_id):
+    import json
+    import time
+
+    # Get the service resource
+    sqs = boto_flask.resources['sqs']
+
+    # Get the queue
+    queue = sqs.get_queue_by_name(QueueName='CheckersOnlineAI')
+    state = games.get_current_game_state(game_id)
+    # Create a new message
+    response = queue.send_message(
+        MessageBody=json.dumps(state),
+        MessageAttributes={
+            "GameId": {
+                "StringValue": game_id,
+                "DataType": "String"
+            },
+            "AIConfiguration": {
+                "StringValue": "NORMAL",
+                "DataType": "String"
+            },
+            "Timestamp": {
+                "StringValue": str(time.time()),
+                "DataType": "String"
+            }
+        })
+
+    # The response is NOT a resource, but gives you a message ID and MD5
     return jsonify(response)

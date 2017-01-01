@@ -21,6 +21,21 @@ def convert_coordinate_game_state_to_tuple(game_state):
     }
 
 
+def convert_sqs_coordinate_to_tuple(c):
+    return convert_coordinate_to_tuple(c['S'])
+
+
+def convert_sqs_coordinate_game_state_to_tuple(game_state):
+    return {
+        "BlackRegular": list(map(convert_sqs_coordinate_to_tuple, game_state['BlackRegular']['L'])),
+        "BlackKings": list(map(convert_sqs_coordinate_to_tuple, game_state['BlackKings']['L'])),
+        "WhiteRegular": list(map(convert_sqs_coordinate_to_tuple, game_state['WhiteRegular']['L'])),
+        "WhiteKings": list(map(convert_sqs_coordinate_to_tuple, game_state['WhiteKings']['L'])),
+        "Turn": game_state['Turn']['S'],
+        "Winner": game_state['Winner']['S'] if 'winner' in game_state else None
+    }
+
+
 def get_default_game_state():
     black_regular = []
     white_regular = []
