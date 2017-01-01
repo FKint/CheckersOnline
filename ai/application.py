@@ -22,7 +22,9 @@ def get_move(game_state, configuration):
 
 @application.route('/play-ai', methods=['POST'])
 def play_ai():
+    print("Playing AI!")
     message = request.get_json()
+    application.logger.info("Received message: {}".format(message))
     print("Received message: {}".format(message))
     if message.message_attributes is not None:
         game_id = message.message_attributes.get('GameId')['StringValue']
