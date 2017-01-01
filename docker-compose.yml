@@ -19,6 +19,9 @@ services:
         build: ./ai
         volumes:
             - ./ai:/code
+            - ./app_server/game_model:/code/game_model
+        env_file:
+            - ./ai/config/private.aws.config.env
         working_dir: /code
         command: python3 -u application.py
         ports:

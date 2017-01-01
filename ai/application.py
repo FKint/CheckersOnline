@@ -19,10 +19,13 @@ INTERVAL = 5
 
 
 def main():
+    print("Starting AI worker")
     sqs = boto3.resource('sqs')
     queue = sqs.get_queue_by_name(QueueName="CheckersOnlineAI")
     while True:
+        print("Receiving queue messages")
         for message in queue.receive_messages(MessageAttributeNames=['GameId', 'AIConfiguration', 'Timestamp']):
+            print("Found message")
             if message.message_attributes is not None:
                 game_id = message.message_attributes.get('GameId')['StringValue']
                 print("playing game {}!".format(game_id))
