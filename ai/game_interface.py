@@ -1,11 +1,10 @@
 from game_model import checkers, helpers
 import time
-import boto3
+from application import boto_flask
 
 
-def execute_move(game_id, src, dest):
-    db_game_state = get_current_game_state(game_id)
-    timestamp = db_game_state['StateTimestamp'] if 'StateTimestamp' in db_game_state else None
+def execute_move(game_id, src, dest, timestamp):
+    db_game_state = get_current_game_state(game_id, timestamp)
     checkers_state = checkers.CheckersState(db_game_state['Turn'], db_game_state['BlackRegular'],
                                             db_game_state['BlackKings'],
                                             db_game_state['WhiteRegular'], db_game_state['WhiteKings'])
@@ -15,7 +14,7 @@ def execute_move(game_id, src, dest):
 
 
 def get_game_data(game_id):
-    dynamodb = boto3.resource('dynamodb')
+    dynamodb = boto_flask.resources['dynamodb']
     table = dynamodb.Table('GamesCollection')
     response = table.get_item(
         Key={
@@ -25,14 +24,16 @@ def get_game_data(game_id):
     return response['Item']
 
 
-def get_current_game_state(game_id):
+def get_current_game_state(game_id, timestamp=None):
     game_data = get_game_data(game_id)
+    if timestamp is not None and game_data['StateTimestamp'] != timestamp:
+        return None
     states = game_data['GameStates']
     return helpers.convert_coordinate_game_state_to_tuple(states[-1])
 
 
 def update_game_state(game_id, game_state, timestamp=None):
-    dynamodb = boto3.resource('dynamodb')
+    dynamodb = boto_flask.resources['dynamodb']
     table = dynamodb.Table('GamesCollection')
     winner = None
     if 'Winner' in game_state:

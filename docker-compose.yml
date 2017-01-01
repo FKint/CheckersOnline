@@ -14,14 +14,13 @@ services:
             - "5000"
         links:
             - dynamodb
-            - ai
     ai:
         build: ./ai
         volumes:
             - ./ai:/code
             - ./app_server/game_model:/code/game_model
-        env_file:
-            - ./ai/config/private.aws.config.env
+        environment:
+            - ENVIRONMENT=development
         working_dir: /code
         command: python3 -u application.py
         ports:
@@ -30,6 +29,18 @@ services:
             - "5000"
         links:
             - dynamodb
+    ai_poller:
+        build: ./ai_poller
+        volumes:
+            - ./ai_poller:/code
+        env_file:
+            - ./ai_poller/config/private.development.config.env
+        working_dir: /code
+        command: python3 -u application.py
+        expose:
+            - "5000"
+        links:
+            - ai
     dynamodb:
         image: deangiberson/aws-dynamodb-local:latest
         expose:

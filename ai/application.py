@@ -1,10 +1,12 @@
-import boto3
-import json
 from ai import AICheckersState
 import game_interface
-from game_model import helpers
+from flask import Flask, request, jsonify
+from flask_boto3 import Boto3
+import os
 
-import time
+application = Flask("Checkers Online AI")
+application.config.from_pyfile("config/private.{}.config".format(os.environ['ENVIRONMENT']))
+boto_flask = Boto3(application)
 
 
 def get_move(game_state, configuration):
@@ -15,30 +17,29 @@ def get_move(game_state, configuration):
     return move[1]
 
 
-INTERVAL = 5
+@application.route('/play-ai', methods=['POST'])
+def play_ai():
+    message = request.get_json()
+    application.logger.debug("Received message: {}".format(message))
+    if message.message_attributes is not None:
+        game_id = message.message_attributes.get('GameId')['StringValue']
+        print("playing game {}!".format(game_id))
+        ai_configuration = message.message_attributes.get('AIConfiguration')['StringValue']
+        timestamp = message.message_attributes.get('Timestamp')['StringValue']
+        game_state = game_interface.get_current_game_state(game_id, timestamp=timestamp)
+        if game_state is not None:
+            move = get_move(game_state, ai_configuration)
+            if move is not None and len(move) > 1:
+                game_interface.execute_move(game_id, move[0], move[1:], timestamp)
+            else:
+                print("Didn't find a valid move: {}".format(move))
+        else:
+            print("Current game state timestamp does not match SQS message game state timestamp")
+    return jsonify(message)
 
 
 def main():
-    print("Starting AI worker")
-    sqs = boto3.resource('sqs')
-    queue = sqs.get_queue_by_name(QueueName="CheckersOnlineAI")
-    while True:
-        print("Receiving queue messages")
-        for message in queue.receive_messages(MessageAttributeNames=['GameId', 'AIConfiguration', 'Timestamp']):
-            print("Found message")
-            if message.message_attributes is not None:
-                game_id = message.message_attributes.get('GameId')['StringValue']
-                print("playing game {}!".format(game_id))
-                ai_configuration = message.message_attributes.get('AIConfiguration')['StringValue']
-                timestamp = message.message_attributes.get('Timestamp')['StringValue']
-                game_state = json.loads(message.body)
-                game_state = helpers.convert_sqs_coordinate_game_state_to_tuple(game_state)
-                move = get_move(game_state, ai_configuration)
-                if move is not None:
-                    game_interface.execute_move(game_id, move[0], move[1:])
-            message.delete()
-            print("Message deleted")
-        time.sleep(INTERVAL)
+    application.run(host="0.0.0.0")
 
 
 if __name__ == "__main__":

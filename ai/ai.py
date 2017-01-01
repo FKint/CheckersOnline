@@ -25,9 +25,6 @@ class AICheckersState(CheckersState):
         return AICheckersState(self.turn, self.black_regular, self.black_kings, self.white_regular, self.white_kings,
                                self.ai_configuration)
 
-    def switch_turn(self):
-        self.turn = helpers.get_other_player(self.turn)
-
     def get_game_state_value(self):
         white_score = len(self.white_regular) * REGULAR_VALUE + len(self.white_kings) * KING_VALUE
         black_score = len(self.black_regular) * REGULAR_VALUE + len(self.black_kings) * KING_VALUE
@@ -63,7 +60,7 @@ class AICheckersState(CheckersState):
         return all_steps
 
     def get_optimal_killing_for_piece(self, piece, location, captured=None, history=None):
-        #TODO: check that kings don't jump back over killed pieces
+        # TODO: check that kings don't jump back over killed pieces
         if captured is None:
             captured = set()
         if history is None:
@@ -76,13 +73,13 @@ class AICheckersState(CheckersState):
             captured_piece = self.get_captured_piece(location, c)
             captured_piece = captured_piece[1]
             if captured_piece in captured:
-                #No captured piece can be jumped twice
+                # No captured piece can be jumped twice
                 continue
-                #if c in history:
+                # if c in history:
                 #    continue
-                #new_history = history | {c}
-                #new_captured = captured
-            #new_history = {c}
+                # new_history = history | {c}
+                # new_captured = captured
+            # new_history = {c}
             new_captured = captured | {captured_piece}
             self.move_piece(location, c, end_of_move=False)
             number, moves = self.get_optimal_killing_for_piece(piece, c, new_captured, history=history)
@@ -110,9 +107,10 @@ class AICheckersState(CheckersState):
         return best_number, best_moves
 
     def get_best_move(self, depth_remaining):
-        if self.get_winner() == self.turn:
+        winner = self.get_winner()
+        if winner == self.turn:
             return WINNING_SCORE, []
-        elif self.get_winner() == helpers.get_other_player(self.turn):
+        elif winner == helpers.get_other_player(self.turn):
             return LOSING_SCORE, []
         if depth_remaining < 0:
             return self.get_game_state_value(), []
@@ -128,8 +126,8 @@ class AICheckersState(CheckersState):
         for pm in possible_moves:
             new_state = self.clone()
             new_state.validate_move(pm[0], pm[1:])
-            new_state.switch_turn()
             score, next_move = new_state.get_best_move(depth_remaining=depth_remaining - 1)
+            score = -score
             if depth_remaining == 5:
                 print(depth_remaining, score, next_move)
             if score > best_score:

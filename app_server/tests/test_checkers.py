@@ -12,8 +12,15 @@ class TestCheckersState(unittest.TestCase):
             black_regular=[(0, 3), (0, 7), (0, 9), (1, 2), (1, 6), (1, 8), (2, 9), (3, 8),
                            (3, 0), (3, 2), (2, 5), (1, 4), (3, 6)],
             black_kings=[])
-        src = (4,5)
-        dest = [(2,7),(0,5),(2,3),(0,1)]
+        src = (4, 5)
+        dest = [(2, 7), (0, 5), (2, 3), (0, 1)]
 
         state.validate_move(src, dest)
         self.assertEqual(1, len(state.white_kings))
+
+    def test_switch_turn(self):
+        state = checkers.CheckersState(checkers.WHITE, [], [], [], [])
+        state.switch_turn()
+        self.assertEqual(checkers.BLACK, state.turn)
+        state.switch_turn()
+        self.assertEqual(checkers.WHITE, state.turn)

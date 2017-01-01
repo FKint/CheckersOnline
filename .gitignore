@@ -143,3 +143,4 @@ fabric.properties
 *config.env
 private.*.*config
 app_server.zip
+ai.zip
